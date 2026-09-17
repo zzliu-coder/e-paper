@@ -1,0 +1,17 @@
+{
+  "pillow": "11.3.0",
+  "sizes": [
+    18,
+    20,
+    22,
+    25,
+    28,
+    30
+  ],
+  "bpp": 2,
+  "glyphs_per_font": 463,
+  "files": {
+    "SourceHanSansCN-Medium.otf": "a94e558a2fe972bee4f46bce0843abff37063fd68c33f1e7d9058f6f09432b01",
+    "LXGWWenKaiGBScreen.ttf": "23ec023913e1851925eb94462c4b0ccd1d78bb89533745aaa8cc682ccd339dc0"
+  }
+}

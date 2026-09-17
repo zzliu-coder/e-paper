@@ -1,0 +1,60 @@
+{
+  "converter": "lv_font_conv@1.5.3",
+  "sizes": [
+    16,
+    18,
+    20,
+    22,
+    24,
+    28,
+    32,
+    40
+  ],
+  "characters": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~。中之例光在文晨正清的示窗系统继续置美设读边阅（），",
+  "profiles": {
+    "0": "Pillow baseline / Source Han Sans Medium",
+    "1": "LVGL light hint / Source Han Sans Medium",
+    "2": "LVGL light hint / LXGW Neo XiHei Screen",
+    "3": "LVGL light hint / WenQuanYi Micro Hei"
+  },
+  "font_sha256": {
+    "0": "a94e558a2fe972bee4f46bce0843abff37063fd68c33f1e7d9058f6f09432b01",
+    "1": "a94e558a2fe972bee4f46bce0843abff37063fd68c33f1e7d9058f6f09432b01",
+    "2": "6f69412d8307c055b7f247e67669b0e4ab4b79bf199fe58ee93545429b586092",
+    "3": "0722673ace3d132d2fb47aabde35dc9e2b3832ffe38e43a1dc3057e0266b981a"
+  },
+  "files": {
+    "lab_p0_16.c": "b61e456a1f81c6e2cdffa9eb9dd87dae8a9b7949a7bb61586b23b969c67f2216",
+    "lab_p0_18.c": "5268190939bda8a95dbc4701fcf11e5365ba551cb91cea5262043a7809a5ac64",
+    "lab_p0_20.c": "3e6f52ef554b371ec5d56c21c2c882228bc291ca467876ff989fd5d14bb6ce71",
+    "lab_p0_22.c": "77ab86f55893873f9658f7659f600d70f562d44e055ab0f33d1582dfc4a3b6be",
+    "lab_p0_24.c": "575418d829201ce908e14dfc2faa9cd1b69183c01e7db119feaaa294e972585e",
+    "lab_p0_28.c": "02a8ba97274688e336d23940bd8d309028646d4bea07c8cba90feac8be2cd5ad",
+    "lab_p0_32.c": "922f3d768f400855ce132ae9bf8e725c65cbfe3893244cabd5e0d2675a299ccf",
+    "lab_p0_40.c": "cb76c6a7995c7e1d2b659c053c8e35d5fbfa340c4e6d41db1d44c8f590ace92a",
+    "lab_p1_16.c": "b13b5776cde9bc65671404fb158c39c43753386fae2941b7414016c1bc5b34dc",
+    "lab_p1_18.c": "c9f5e1e63e219aa756491e86d6b111ec49022db808ee075bb2f3500a57785da4",
+    "lab_p1_20.c": "1ec474926e79ed840ab0e2983695031c8d0eb7f5a28fd5735a626d129bd140b8",
+    "lab_p1_22.c": "6999a41aacb57a29911c2cc645a846cf10bd3d4e5e6ed94391f4c84c16744bfd",
+    "lab_p1_24.c": "7942377d1560d780b8c8f4539e71f3607635decf881c78ea2a46799988f3d468",
+    "lab_p1_28.c": "b7e92301b88e9f98e2e2c267179465289508b1ce10a10e5364d6456f51a336c2",
+    "lab_p1_32.c": "701e232fa055aaec445f08fa8c5358f014ee22515301f464e62234f3bcd19f2b",
+    "lab_p1_40.c": "882602c99c5f5c4ccdf5b3b7f99ed042baaa20aa19df90442b23f681edc702d6",
+    "lab_p2_16.c": "5083a7e47851518b32994dc678276891875c5496cc4d81c726e16d8aa1142498",
+    "lab_p2_18.c": "1d7166d8fa2d89d85899bfed8846701afbbe87472aca7700c96207a5e3bfdd83",
+    "lab_p2_20.c": "edff5dca7a573f231b4d4e48e6137ff6975a58d64393df1c9d81fdaf3b350091",
+    "lab_p2_22.c": "3b32c035fa2095a0182b87a95fc50f4b21f8ec020cde2f5911be0b2659424c6f",
+    "lab_p2_24.c": "c784532883e6e14f84834a178c24cd4ab97ca90de8e4c3f50e84d9da7e39f075",
+    "lab_p2_28.c": "ac77172996ddce1811d6bd6c2e2d13f3d4beff3c2321d82836f6954e2d98fe7c",
+    "lab_p2_32.c": "e24bcb674bef098c44736761236557ccbf4fa64042a9e40acfa08d55ece5988f",
+    "lab_p2_40.c": "ed2d973b245add13fc880b6ef73f08b0aa719a6d8e85136916260b0fa73ee111",
+    "lab_p3_16.c": "c81fd4316ee738f7b69cd04d7ca173b216ce2a2e1970f0b7ada4a4f169530c5c",
+    "lab_p3_18.c": "99dfee671110a5018a950164621a4f5e953a0a937da05e92ff651b9f99af9452",
+    "lab_p3_20.c": "4a60cee36e1dc3284bce5f38bebd8990eae1b2141b67bc0023dfafe2d459e3ec",
+    "lab_p3_22.c": "0497f9d3d06a63dbebfa5ab2f91a88ae66dbf82140933926c13e9ca8b260e50f",
+    "lab_p3_24.c": "26ea83c6b2896cab45a5182c704b0d4e97e9836910a5b8666a9f14c7ed1492cc",
+    "lab_p3_28.c": "5519420234664fca5b3071436cd77261a5f5bdb77016d753c663397d0831dd7b",
+    "lab_p3_32.c": "729e210b789311fec4df00a407fdb312ec95ebc0c45c0248f16b22751458d7c7",
+    "lab_p3_40.c": "46a53e1f7485fae109fb1674d050ed686cd81090b4fbe9d8337cf79a94da2c7d"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "version": "scene-a",
+  "rects": [
+    {"x": 24, "y": 24, "w": 752, "h": 8, "black": true},
+    {"x": 80, "y": 180, "w": 640, "h": 120, "black": true},
+    {"x": 120, "y": 340, "w": 160, "h": 56, "black": true}
+  ]
+}

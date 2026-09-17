@@ -1,0 +1,29 @@
+# ESP-IDF generated dependencies and build trees
+managed_components/
+build/
+work/
+sdkconfig.old
+dependencies.lock.old
+
+# Device-specific backups, flash images, logs and frame captures
+artifacts/
+sessions/
+
+# Local Python/test/editor state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.vscode/
+.idea/
+
+# Generated native build output
+*.o
+*.a
+*.elf
+*.map
+*.hex
+
+# Device binary artifacts are kept in the local release evidence directory.
+*.bin
+!wakeword/srmodels.bin
