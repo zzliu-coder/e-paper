@@ -3,6 +3,9 @@
 #include <iostream>
 int main(int argc,char**argv){
     using namespace paper;
+    assert(hex64(0)=="0000000000000000");
+    assert(hex64(0x123456789abcdef0ULL)=="123456789abcdef0");
+    assert(hex64(UINT64_MAX)=="ffffffffffffffff");
     // Every 2x2 tile has exact 0/25/75/100 percent ink coverage.
     for(int a=0;a<4;++a){
         Glyph g;g.width=g.height=4;g.top=4;g.coverage2.assign(4,a*85);
@@ -35,6 +38,18 @@ int main(int argc,char**argv){
         assert(r.complete(j.revision,{}));
     }
     assert(r.action("text-render","dots"));
+    assert(r.action("search"));assert(r.action("mode","2"));assert(r.job(j));
+    const auto epoch=j.inputEpoch;assert(epoch);
+    assert(r.inputBatch(epoch,{{"key","r"},{"key","e"},{"key","a"},{"key","d"}}));
+    assert(r.snapshot().find("\"visible\":\"read\"")!=std::string::npos);
+    // Another batch is accepted even before display completion.
+    assert(r.inputBatch(epoch,{{"delete",""},{"key","y"}}));
+    assert(r.snapshot().find("\"visible\":\"reay\"")!=std::string::npos);
+    assert(!r.inputBatch(epoch,{{"input-confirm",""}}));
+    assert(!r.inputBatch(epoch,{{"cursor","bad"},{"delete",""},{"key","d"}}));
+    assert(r.snapshot().find("\"visible\":\"read\"")!=std::string::npos);
+    assert(r.action("mode","3"));assert(!r.inputBatch(epoch,{{"key","x"}}));
+    assert(r.action("input-cancel"));assert(!r.inputBatch(epoch,{{"key","x"}}));
     Runtime reopened(argv[1],hw);assert(reopened.initialize());assert(reopened.snapshot().find("\"text_render\":\"dots\"")!=std::string::npos);
     std::cout<<"PASS coverage, inverse, clipping, determinism, binary panel, removed routes, settings persistence\n";
 }

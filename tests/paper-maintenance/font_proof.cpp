@@ -22,6 +22,16 @@ int main(int argc,char**argv){
     fs::copy_file(fs::path(argv[1])/"misans-400-26.pgf",root/relative);
     fs::copy_file(fs::path(argv[2])/"misans-400-26.pgf.pfv2",root/(relative+".pfv2"));
     paper::ResourceGate gate;paper::Store store(root.string(),gate);assert(store.initialize());
+    // Dynamic book titles and IME candidates can miss the small UI subset.
+    // Their medium/bold faces must use the same checked block path as body text.
+    for(int weight:{500,700})for(int px=16;px<=40;++px){
+        auto name="misans-"+std::to_string(weight)+"-"+std::to_string(px)+".pgf";
+        fs::copy_file(fs::path(argv[1])/name,root/"paper/fonts"/name);
+        fs::copy_file(fs::path(argv[2])/(name+".pfv2"),root/"paper/fonts"/(name+".pfv2"));
+        paper::PackedFonts face(store);paper::Glyph glyph;
+        assert(face.glyph(0x6e05,{px,weight,false},glyph));
+        assert(face.statistics().find("\"proof_faces\":1")!=std::string::npos);
+    }
     for(int px=16;px<=40;++px){
         std::string name="misans-400-"+std::to_string(px)+".pgf";
         if(px!=26){fs::copy_file(fs::path(argv[1])/name,root/"paper/fonts"/name);fs::copy_file(fs::path(argv[2])/(name+".pfv2"),root/"paper/fonts"/(name+".pfv2"));}

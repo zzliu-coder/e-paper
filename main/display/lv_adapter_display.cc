@@ -1,6 +1,9 @@
 #include "lv_adapter_display.h"
 #include <atomic>
 #include "personal_sdk.h"
+#ifdef CONFIG_PAPER_CORE_APP
+#include "inkdesk_app.h"
+#endif
 #include "esp_app_desc.h"
 
 #include <algorithm>
@@ -307,6 +310,21 @@ void TouchFeedKickLvgl(const char* why, uint8_t pend_d, uint8_t pend_u, uint8_t 
 
 /** touch_feed：按下边沿早震；盖板键逻辑；屏内锁存 down/up 边沿供 LVGL 补齐 CLICKED。 */
 void TouchFeedHandleSample(uint8_t count, int x, int y) {
+#ifdef CONFIG_PAPER_CORE_APP
+    // Fixed keyboard keys must not wait for the LVGL/display BUSY lock.
+    // Swallow moves and release too, so LVGL cannot submit the same key twice.
+    static bool paper_key_gesture = false;
+    if (paper_key_gesture) {
+        if (count == 0) { paper_key_gesture = false; s_finger_was_down = false; }
+        return;
+    }
+    if (count && !s_finger_was_down && inkdesk_app::KeyboardTouchDown(x, y)) {
+        paper_key_gesture = true;
+        s_finger_was_down = true;
+        PowerPolicy::GetInstance().NotifyUserActivity();
+        return;
+    }
+#endif
     if (count == 0) {
         if (s_finger_was_down) {
             ESP_LOGI(TAG, "touch up");

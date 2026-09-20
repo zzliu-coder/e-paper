@@ -15,6 +15,7 @@ namespace paper {
     };
     struct DisplayJob {
         uint64_t revision=0;
+        uint64_t inputEpoch=0;
         bool full=true,gray=false;
         Canvas frame;
         std::vector<Hit>hits;
@@ -47,6 +48,7 @@ namespace paper {
         std::vector<Locator>search_;
         size_t listPage_=0,candidatePage_=0;
         uint64_t revision_=0,presented_=0;
+        uint64_t inputEpoch_=0;
         std::vector<Hit>hits_;
         Canvas canvas_;
         bool uppercase_=false,footerDrawn_=false;
@@ -91,6 +93,9 @@ namespace paper {
         void setFontProgressObserver(std::function<Status(size_t,size_t)> observer){fontCatalog_.setProgressObserver(observer);fonts_.setProgressObserver(std::move(observer));}
         void setDocumentProgressObserver(DocumentProgress observer){reader_.setDocumentProgressObserver(std::move(observer));}
         Status action(const std::string&,const std::string&value="");
+        // Fixed keyboard keys may be queued across display revisions, but
+        // never across input sessions or layout changes. Candidates stay strict.
+        Status inputBatch(uint64_t,const std::vector<std::pair<std::string,std::string>>&);
         // Refresh completed network jobs only while their page is visible.
         bool pollNetwork();
         bool prepareIdle(const std::function<bool()>&stop);

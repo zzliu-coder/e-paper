@@ -16,6 +16,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "power_policy.h"
+#include "haptic_feedback.h"
 #include "selftest.h"
 #include "cJSON.h"
 #include <atomic>
@@ -52,6 +53,9 @@ namespace {
         0
     };
     std::mutex snapshotMutex;
+    std::mutex keyMapMutex;
+    uint64_t keyEpoch=0;
+    std::vector<paper::Hit> keyHits;
     std::string statusJson="{\"phase\":\"starting\"}";
     std::string lastAction,lastActionError,lastToken,publishedToken;
     std::atomic<uint64_t> rejectedInputs{0},completedInputs{0};
@@ -159,6 +163,17 @@ namespace {
         if(!ok)++rejectedInputs;
         return ok;
     }
+    void resolveKey(Input&cmd){
+        std::lock_guard<std::mutex> lock(keyMapMutex);
+        if(keyEpoch)for(const auto&h:keyHits)if(h.enabled&&h.box.contains(cmd.x,cmd.y)){
+            if(h.action=="key"||h.action=="delete"||h.action=="cursor"||h.action=="literal"){
+                cmd.kind=4;cmd.revision=keyEpoch;
+                strncpy(cmd.action,h.action.c_str(),sizeof(cmd.action)-1);
+                strncpy(cmd.value,h.value.c_str(),sizeof(cmd.value)-1);
+            }
+            break;
+        }
+    }
     void click(lv_event_t*e) {
         if(lv_event_get_code(e)!=LV_EVENT_CLICKED||!active)return;
         auto*i=lv_indev_active();
@@ -171,7 +186,11 @@ namespace {
         cmd.x=p.x;
         cmd.y=p.y;
         cmd.revision=displayed.load();
-        post(cmd);
+        resolveKey(cmd);
+        // Acknowledge an accepted physical keyboard tap before rendering. This
+        // screen has no HapticAttachClick zones; remote taps remain silent.
+        // The board pulse is timer-driven, so it never sleeps on the UI task.
+        if(post(cmd)&&cmd.kind==4)HapticPulseIfEnabled();
     }
     paper::Status present() {
         paper::DisplayJob job;
@@ -260,7 +279,7 @@ namespace {
         }
         :paper::Status::fail(paper::Error::BackendFailure,"墨水屏提交失败");
         runtime->complete(job.revision,st);
-        if(st)displayed=job.revision;
+        if(st){displayed=job.revision;std::lock_guard<std::mutex> lock(keyMapMutex);keyEpoch=job.inputEpoch;keyHits=job.hits;}
         return st;
     }
     void worker(void*) {
@@ -313,6 +332,16 @@ namespace {
                 active=true;
             }
             else if(!active){observeLoading=false;continue;}
+            else if(cmd.kind==4){
+                std::vector<std::pair<std::string,std::string>> keys{{cmd.action,cmd.value}};
+                ::Input next;
+                while(keys.size()<32&&xQueuePeek(queue,&next,0)==pdTRUE&&next.kind==4&&next.revision==cmd.revision){
+                    if(xQueueReceive(queue,&next,0)!=pdTRUE)break;
+                    keys.emplace_back(next.action,next.value);
+                }
+                auto result=runtime->inputBatch(cmd.revision,keys);
+                std::lock_guard<std::mutex> l(snapshotMutex);lastAction="keyboard-batch";lastActionError=result?"":result.message;
+            }
             else if(cmd.kind==1){auto result=runtime->tap(cmd.x,cmd.y,cmd.revision);std::lock_guard<std::mutex>l(snapshotMutex);lastAction="tap";lastActionError=result?"":result.message;}
             else {
                 auto result=runtime->action(cmd.action,cmd.value);
@@ -339,9 +368,17 @@ namespace {
     }
 }
 namespace inkdesk_app {
+    bool KeyboardTouchDown(int x,int y) {
+        if(!active)return false;
+        ::Input cmd;cmd.kind=1;cmd.x=x;cmd.y=y;
+        resolveKey(cmd);
+        if(cmd.kind!=4)return false;
+        if(post(cmd))HapticPulseIfEnabled();
+        return true;
+    }
     void Start() {
         if(queue)return;
-        queue=xQueueCreate(8,sizeof(::Input));
+        queue=xQueueCreate(32,sizeof(::Input));
         if(queue)xTaskCreate(worker,"paper_core",16384,nullptr,3,nullptr);
     }
     void Open() {
@@ -471,7 +508,9 @@ namespace inkdesk_app {
             ::Input i;
             i.kind=1;
             i.revision=displayed.load();
-            if(!number(req,"x",i.x,0,479)||!number(req,"y",i.y,0,799)||!post(i))error(reply,"invalid_or_busy_tap");
+            if(!number(req,"x",i.x,0,479)||!number(req,"y",i.y,0,799)){error(reply,"invalid_or_busy_tap");return true;}
+            resolveKey(i);
+            if(!post(i))error(reply,"invalid_or_busy_tap");
             return true;
         }
         if(!strcmp(cmd,"paper.command")) {

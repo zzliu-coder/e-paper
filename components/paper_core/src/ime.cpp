@@ -71,8 +71,23 @@ namespace paper {
             fclose(f);
             return Status::fail(Error::Corrupt,"中文词典索引无效");
         }
+        // Prefix candidates are consecutive index rows. Keep independent index
+        // and payload windows so reading a word does not evict the next row.
+        // Binary search stays small; buffers live on heap, not the device stack.
+        std::vector<uint8_t> indexWindow(4096),wordWindow(4096);
+        uint32_t indexStart=UINT32_MAX,wordStart=UINT32_MAX;
+        size_t indexBytes=0,wordBytes=0;
+        bool sequential=false;
         auto row=[&](uint32_t i,uint8_t*b) {
-            return i<n&&fseek(f,32+long(i)*64,SEEK_SET)==0&&fread(b,1,64,f)==64&&memchr(b,0,48);
+            if(i>=n)return false;
+            if(!sequential)return fseek(f,32+long(i)*64,SEEK_SET)==0&&fread(b,1,64,f)==64&&memchr(b,0,48);
+            const uint32_t start=i/64*64;
+            if(indexStart!=start){
+                indexStart=UINT32_MAX;indexBytes=std::min<uint32_t>(64,n-start)*64;
+                if(fseek(f,32+long(start)*64,SEEK_SET)||fread(indexWindow.data(),1,indexBytes,f)!=indexBytes)return false;
+                indexStart=start;
+            }
+            memcpy(b,indexWindow.data()+(i-start)*64,64);return memchr(b,0,48)!=nullptr;
         };
         uint32_t lo=0,hi=n;
         uint8_t r[64];
@@ -85,6 +100,20 @@ namespace paper {
             if(std::string((char*)r)<query)lo=m+1;
             else hi=m;
         }
+        sequential=true;
+        auto word=[&](uint32_t off,size_t bytes,char*dst){
+            while(bytes){
+                const uint32_t start=off/4096*4096;
+                if(wordStart!=start){
+                    wordStart=UINT32_MAX;wordBytes=std::min<uint32_t>(4096,length-start);
+                    if(fseek(f,data+start,SEEK_SET)||fread(wordWindow.data(),1,wordBytes,f)!=wordBytes)return false;
+                    wordStart=start;
+                }
+                const size_t take=std::min<size_t>(bytes,wordBytes-(off-start));
+                memcpy(dst,wordWindow.data()+off-start,take);off+=take;dst+=take;bytes-=take;
+            }
+            return true;
+        };
         for(uint32_t i=lo;i<n&&i-lo<2048;++i) {
             if(!row(i,r)) {
                 fclose(f);
@@ -101,7 +130,7 @@ namespace paper {
             }
             char buf[240] {
             };
-            if(fseek(f,data+off,SEEK_SET)||fread(buf,1,wl+pl,f)!=size_t(wl+pl)) {
+            if(!word(off,wl+pl,buf)) {
                 fclose(f);
                 return Status::fail(Error::Io,"词典条目读取失败");
             }

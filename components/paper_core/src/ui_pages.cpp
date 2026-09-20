@@ -6,7 +6,7 @@ using ui::Painter;using ui::Align;using ui::Icon;using ui::Control;
 namespace {
 std::string nameOf(const std::string&s){auto n=s.rfind('/');return n==s.npos?s:s.substr(n+1);}
 std::string shortName(const std::string&s){auto n=s.rfind('.');return n==s.npos?s:s.substr(0,n);}
-std::string two(size_t n){char b[24];std::snprintf(b,sizeof(b),"%02zu",n);return b;}
+std::string two(size_t n){auto s=std::to_string(n);return s.size()<2?"0"+s:s;}
 std::string val(const std::string&k,const std::string&v){
     if(k=="text_render")return v=="dots"?"网点柔化":"原始黑白";
     if(k=="epub_engine")return v=="crossmux"?"图文排版":"兼容排版";

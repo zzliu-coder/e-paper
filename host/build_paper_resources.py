@@ -3,6 +3,7 @@
 import argparse,importlib.util,json
 from pathlib import Path
 from fontTools.ttLib import TTFont
+from check_paper_ui_coverage import required_chars
 
 def module(path,name):
     spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
@@ -10,10 +11,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--tools',type=Path,required=True);p.add_argument('--sources',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--ui-only',action='store_true');a=p.parse_args()
     builder=module(a.tools/'build_fonts.py','pgf_builder');dictionary=module(a.tools/'build_dictionary.py','ime_builder')
     root=Path(__file__).resolve().parents[1]
-    required=set(range(32,127))
-    for folder in (root/'components/paper_core',root/'main/paper_shell'):
-        for f in folder.rglob('*.cpp'):required.update(ord(c) for c in f.read_text() if ord(c)>127)
-        for f in folder.rglob('*.cc'):required.update(ord(c) for c in f.read_text() if ord(c)>127)
+    required=required_chars(root)
     files=[]
     for weight,name in ((400,'Regular'),(500,'Medium'),(700,'Bold')):
         source=a.sources/'MiSansVF.ttf'

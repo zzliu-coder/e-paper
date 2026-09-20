@@ -53,9 +53,10 @@ namespace paper {
 #endif
     }
     std::string hex64(uint64_t x) {
-        char b[17];
-        snprintf(b,sizeof b,"%016llx",(unsigned long long)x);
-        return b;
+        std::string out(16,'0');
+        constexpr char digits[]="0123456789abcdef";
+        for(int i=15;i>=0;--i){out[i]=digits[x&15];x>>=4;}
+        return out;
     }
     namespace {
         constexpr uint32_t K[]= {

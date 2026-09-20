@@ -69,6 +69,7 @@ namespace paper {
         inputPurpose_=purpose;
         returnScreen_=screen_;
         screen_=Screen::Input;
+        ++inputEpoch_;
         candidatePage_=0;
         return {
         };
@@ -451,6 +452,7 @@ namespace paper {
         std::lock_guard<std::recursive_mutex>lock(mutex_);
         if(a.size()>48||v.size()>8192)return Status::fail(Error::TooLarge,"操作参数过长");
         if(gate_.held("usb")&&a!="usb-exit"&&a!="maintenance-usb-exit")return Status::fail(Error::Busy,"电脑正在使用SD，请先安全弹出");
+        if(screen_==Screen::Input&&(a=="mode"||a=="shift"||a=="input-cancel"||a=="input-confirm"||a=="back"||a=="home"))++inputEpoch_;
         auto st=run(a,v);
         lastStatus_=st;
         if(!st)notice_=st.message;
@@ -470,6 +472,19 @@ namespace paper {
         }
         return {
         };
+    }
+    Status Runtime::inputBatch(uint64_t epoch,const std::vector<std::pair<std::string,std::string>>&keys){
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if(screen_!=Screen::Input||!input_.active()||epoch!=inputEpoch_||gate_.held("usb"))return Status::fail(Error::Conflict,"输入布局已变化，请重新输入");
+        if(keys.empty()||keys.size()>32)return Status::fail(Error::TooLarge,"输入队列超出上限");
+        for(const auto&k:keys)if((k.first!="key"&&k.first!="delete"&&k.first!="cursor"&&k.first!="literal")||k.second.size()>4)return Status::fail(Error::Invalid,"无效连续输入");
+        Status st;
+        // Keep later correction keys (especially backspace) after a limit/error.
+        // Report the first failure, but never silently discard the batch tail.
+        for(const auto&k:keys){auto one=run(k.first,k.second);if(!one&&st)st=one;}
+        lastStatus_=st;if(!st)notice_=st.message;
+        full_=!hasPresented_||lastGray_!=outputGray();++revision_;
+        auto drawn=draw();return st?drawn:st;
     }
     bool Runtime::pollNetwork(){
         std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -496,6 +511,7 @@ namespace paper {
         std::lock_guard<std::recursive_mutex>lock(mutex_);
         if(!frameReady_)return Status::fail(Error::NotFound,"没有新画面");
         j.revision=revision_;
+        j.inputEpoch=screen_==Screen::Input?inputEpoch_:0;
         j.full=full_;
         j.gray=outputGray();
         j.frame=canvas_;

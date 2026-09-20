@@ -21,7 +21,7 @@ def main():
                   and (p.suffix in (".c",".h",".cc",".cpp",".hpp",".inc",".cmake",".py",".md",".json",".txt",".t") or p.name=="Kconfig.projbuild" or p.name.startswith(("LICENSE","NOTICE")))
                   and "__pycache__" not in p.parts]
     for name in ("LICENSE","CMakeLists.txt","sdkconfig","dependencies.lock","main/CMakeLists.txt",
-                 "main/personal_sdk.cc","main/boards/common/power_policy/power_hw.cc",
+                 "main/personal_sdk.cc","main/inkdesk_app.h","main/boards/common/power_policy/power_hw.cc",
                  "main/boards/common/bt_audio_codec.cc","main/boards/common/bt_audio_codec.h",
                  "tools/paper/build_font_proofs.py",
                  "main/display/lv_adapter_display.cc","main/display/lv_adapter_display.h",

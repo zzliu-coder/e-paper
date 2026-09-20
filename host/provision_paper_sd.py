@@ -4,6 +4,7 @@ Existing unequal assets are retained in a timestamped on-card backup. No book de
 """
 import argparse,datetime,hashlib,json,shutil
 from pathlib import Path
+from check_paper_ui_coverage import check as check_ui_coverage
 def digest(p):
     sha=hashlib.sha256()
     with p.open('rb') as f:
@@ -12,6 +13,7 @@ def digest(p):
 def main():
     p=argparse.ArgumentParser();p.add_argument('source',type=Path);p.add_argument('volume',type=Path);p.add_argument('--receipt',type=Path,required=True);p.add_argument('--ui-and-ime',action='store_true',help='Install only UI subset and IME; full reading fonts are outside this receipt');p.add_argument('--ui-only',action='store_true',help='Install only UI subset, preserving all reading fonts and IME');a=p.parse_args()
     if a.volume.parent!=Path('/Volumes') or not a.volume.is_mount():raise ValueError('Expected an explicitly mounted /Volumes SD volume')
+    if a.ui_only:check_ui_coverage(a.source,Path(__file__).resolve().parents[1])
     rows=[]
     for rel in ('paper/fonts/manifest.json','paper/fonts/manifest-ui.json','paper/ime/manifest.json'):
         if a.ui_only and rel!='paper/fonts/manifest-ui.json':continue

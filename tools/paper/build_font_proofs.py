@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse,hashlib,struct,zlib
 p=argparse.ArgumentParser();p.add_argument('fonts',type=Path);p.add_argument('out',type=Path);p.add_argument('header',type=Path);a=p.parse_args()
 entries=[];a.out.mkdir(parents=True,exist_ok=True)
-for name in [f'misans-400-{px}.pgf' for px in range(16,41)]+['misans-500-32.pgf']:
+for name in [f'misans-{weight}-{px}.pgf' for weight in (400,500,700) for px in range(16,41)]:
     data=(a.fonts/name).read_bytes();h=data[:80]
     assert h[:4]==b'PGF1' and zlib.crc32(h[:76])==struct.unpack_from('<I',h,76)[0]
     count,_,offset=struct.unpack_from('<III',h,12);length=struct.unpack_from('<I',h,64)[0]
