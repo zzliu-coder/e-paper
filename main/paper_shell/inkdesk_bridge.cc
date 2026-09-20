@@ -132,6 +132,7 @@ namespace {
     paper::Status fontProgress(size_t done,size_t total){return workProgress("font_validation",done,total);}
     // Publish receipts with the frame they acknowledge, never with an older frame.
     std::string publishedAction,publishedError;
+    std::string displayReport="{}",publishedDisplayReport="{}";
     uint64_t publishedCompleted=0;
     int64_t publishedQueueUs=0,publishedActionUs=0,publishedPresentUs=0;
     void publish() {
@@ -145,6 +146,7 @@ namespace {
         publishedQueueUs=queueUs.load();
         publishedActionUs=actionUs.load();
         publishedPresentUs=presentUs.load();
+        publishedDisplayReport=displayReport;
     }
     bool post(const Input&in) {
         if(loadingBusy){
@@ -250,7 +252,8 @@ namespace {
         lv_screen_load(screen);
         if(old!=screen)lv_obj_delete(old);
         auto*d=LVAdapterDisplay::Instance();
-        auto error=d?(rescue?d->RefreshDiagnostic():d->RefreshPaper(job.frame.bytes().data(),job.frame.bytes().size(),job.full,job.gray)):ESP_ERR_INVALID_STATE;
+        displayReport="{\"submitted\":false}";
+        auto error=d?(rescue?d->RefreshDiagnostic():d->RefreshPaper(job.frame.bytes().data(),job.frame.bytes().size(),job.full,job.gray,&displayReport)):ESP_ERR_INVALID_STATE;
         if(lv_screen_active()!=screen)error=ESP_ERR_INVALID_STATE;
         esp_lv_adapter_unlock();
         st=error==ESP_OK?paper::Status {
@@ -377,6 +380,11 @@ namespace inkdesk_app {
         }
         if(!strcmp(cmd,"paper.network")){
             auto state=paper_network::Snapshot();auto*net=cJSON_AddObjectToObject(reply,"network");
+            auto saved=paper_network::SavedSsid();cJSON_AddStringToObject(net,"saved_ssid",saved.c_str());
+            cJSON_AddStringToObject(net,"connected_ssid",state.ssid.c_str());
+            cJSON_AddBoolToObject(net,"saved_visible",!saved.empty()&&std::any_of(state.aps.begin(),state.aps.end(),[&](const auto&a){return a.ssid==saved;}));
+            auto*aps=cJSON_AddArrayToObject(net,"networks");
+            for(size_t n=0;n<state.aps.size()&&n<12;++n){auto*ap=cJSON_CreateObject();cJSON_AddStringToObject(ap,"ssid",state.aps[n].ssid.c_str());cJSON_AddNumberToObject(ap,"signal",state.aps[n].signal);cJSON_AddBoolToObject(ap,"secured",state.aps[n].secured);cJSON_AddItemToArray(aps,ap);}
             cJSON_AddBoolToObject(net,"busy",state.busy);cJSON_AddBoolToObject(net,"connected",state.connected);
             cJSON_AddStringToObject(net,"message",state.message.c_str());cJSON_AddStringToObject(net,"ip",state.ip.c_str());
             cJSON_AddNumberToObject(net,"access_points",state.aps.size());return true;
@@ -424,6 +432,13 @@ namespace inkdesk_app {
             if(s) {
                 cJSON_DeleteItemFromObject(s,"hits");
                 cJSON_DeleteItemFromObject(s,"input");
+                // Discovery can contain 75+ font faces. Keep health receipts
+                // bounded independently of how many SD fonts are installed.
+                if(auto*r=cJSON_GetObjectItem(s,"reader")){
+                    auto*f=cJSON_GetObjectItem(r,"families");
+                    cJSON_AddNumberToObject(r,"family_count",cJSON_GetArraySize(f));
+                    cJSON_DeleteItemFromObject(r,"families");
+                }
                 cJSON_AddItemToObject(reply,"app",s);
                 cJSON_AddStringToObject(reply,"last_action",publishedAction.c_str());
                 cJSON_AddNumberToObject(reply,"receipt_token_version",1);
@@ -435,6 +450,7 @@ namespace inkdesk_app {
                 cJSON_AddNumberToObject(p,"queue_us",publishedQueueUs);
                 cJSON_AddNumberToObject(p,"action_us",publishedActionUs);
                 cJSON_AddNumberToObject(p,"present_us",publishedPresentUs);
+                if(auto*display=cJSON_Parse(publishedDisplayReport.c_str()))cJSON_AddItemToObject(reply,"display",display);
                 auto*loading=cJSON_AddObjectToObject(reply,"loading");
                 cJSON_AddBoolToObject(loading,"active",loadingBusy.load());
                 cJSON_AddBoolToObject(loading,"cancel_requested",loadingCancel.load());

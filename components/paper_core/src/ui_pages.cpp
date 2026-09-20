@@ -8,6 +8,7 @@ std::string nameOf(const std::string&s){auto n=s.rfind('/');return n==s.npos?s:s
 std::string shortName(const std::string&s){auto n=s.rfind('.');return n==s.npos?s:s.substr(0,n);}
 std::string two(size_t n){char b[24];std::snprintf(b,sizeof(b),"%02zu",n);return b;}
 std::string val(const std::string&k,const std::string&v){
+    if(k=="text_render")return v=="dots"?"网点柔化":"原始黑白";
     if(k=="epub_engine")return v=="crossmux"?"图文排版":"兼容排版";
     if(k=="book_header")return v=="book"?"显示书名":"简洁页眉";
     if(v=="on")return "开启";
@@ -25,6 +26,7 @@ std::string val(const std::string&k,const std::string&v){
     return v;
 }
 std::string hintFor(const std::string&k){
+    if(k=="text_render")return "使用黑白快速刷新。\n网点柔化只处理字形边缘；保留字号与阅读位置。";
     if(k=="epub_engine")return "图文保留插图、段落和注音。\n两套排版分别保存进度与书签。";
     if(k=="book_header")return "简洁页眉减少额外标题字库的首次加载。\n书名仍可在书库中查看。";
     if(k=="reader_px")return "改变正文大小，保留当前阅读位置。";
@@ -150,7 +152,7 @@ void Runtime::menus(){
 }
 std::vector<size_t> Runtime::settingIndices()const{
     std::vector<size_t>ids;auto&defs=settingDefinitions();
-    for(size_t i=0;i<defs.size();++i){auto&d=defs[i];bool yes=settingCategory_=="display"?d.category=="显示":settingCategory_=="input"?d.category=="输入":settingCategory_=="network"?(d.category=="连接"||d.key=="bt_audio_mode"||d.key=="cellular"):(d.category=="电源"||d.key=="haptic");if(yes)ids.push_back(i);}return ids;
+    for(size_t i=0;i<defs.size();++i){auto&d=defs[i];if(d.key=="reader_gray")continue;bool yes=settingCategory_=="display"?d.category=="显示":settingCategory_=="input"?d.category=="输入":settingCategory_=="network"?(d.category=="连接"||d.key=="bt_audio_mode"||d.key=="cellular"):(d.category=="电源"||d.key=="haptic");if(yes)ids.push_back(i);}return ids;
 }
 void Runtime::settingsPage(){
     Painter p(canvas_,fonts_,textError_,&uiAudit_);

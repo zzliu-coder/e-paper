@@ -1,3 +1,10 @@
+#if !defined(CONFIG_PAPER_GRAY_EXPERIMENT) && !defined(CONFIG_PAPER_GRAY_VERIFIED)
+// Product is binary-only. No experimental panel state or waveform is linked.
+esp_err_t fb_panel_normal_guard(esp_lcd_panel_handle_t p){(void)p;return ESP_OK;}
+bool fb_panel_needs_restore(esp_lcd_panel_handle_t p){(void)p;return false;}
+esp_err_t fb_panel_detach(esp_lcd_panel_handle_t p){(void)p;return ESP_OK;}
+esp_err_t fb_panel_recover(esp_lcd_panel_handle_t p){(void)p;return ESP_OK;}
+#else
 /* Included at the END of the original SSD1677 driver translation unit.
  * Accesses that driver's actual private state; never redeclares its layout.
  * All callers hold the same LVGL/display lock. No interrupt or timer writes.
@@ -9,6 +16,7 @@ typedef struct {
  fb_gray_state gray;
  bool restoring;
  uint8_t* storage; /* base, LSB, MSB, last committed monotone frame */
+ uint8_t tx_scratch[128] __attribute__((aligned(4)));
 } fb_panel_context;
 static fb_panel_context fbpc;
 static uint32_t fbp_now(void* p){(void)p;return (uint32_t)(esp_timer_get_time()/1000);}
@@ -26,9 +34,29 @@ static int fbp_write(void* p,int cmd,const uint8_t* data,size_t n){
  epaper_panel_t* panel=(epaper_panel_t*)p;
  // tx_param is synchronous and drains previous queued color DMA. -1 omits the
  // command byte. The portable layer sends at most 128 bytes per data chunk.
- return esp_lcd_panel_io_tx_param(panel->io,cmd,data,n)==ESP_OK?FB_OK:FB_IO;
+ if(n>sizeof(fbpc.tx_scratch)||(!data&&n))return FB_ARGUMENT;
+ if(n)memcpy(fbpc.tx_scratch,data,n);
+ return esp_lcd_panel_io_tx_param(panel->io,cmd,n?fbpc.tx_scratch:NULL,n)==ESP_OK?FB_OK:FB_IO;
 }
-static fb_bus fbp_bus(epaper_panel_t* p){fb_bus b={p,fbp_write,fbp_idle,fbp_now};return b;}
+static int fbp_prepare_bw(void* p){
+ // Reuse the actual board's proven full B/W LUT, not an assumed OTP waveform.
+ // C4 leaves analog power on for the subsequent short gray overlay.
+ epaper_panel_t* panel=(epaper_panel_t*)p;
+ return epaper_panel_load_fast_lut(&panel->base)==ESP_OK?FB_OK:FB_IO;
+}
+static int fbp_begin_gray(void* p){
+ epaper_panel_t* panel=(epaper_panel_t*)p;
+ // A deliberate mode entry, never recovery from stuck BUSY. Invalidate all
+ // volatile B/W registers before adopting FreeInk's complete Metalio path.
+ if(fbp_idle(p,FB_GRAY_TIMEOUT_MS)!=FB_OK)return FB_TIMEOUT;
+ esp_err_t e=epaper_panel_reset(&panel->base);
+ if(e==ESP_OK)e=epaper_panel_init(&panel->base);
+ gpio_intr_disable(panel->busy_gpio_num);
+ if(e!=ESP_OK)return FB_IO;
+ const uint8_t options[10]={0};
+ return fbp_write(p,0x37,options,sizeof(options));
+}
+static fb_bus fbp_bus(epaper_panel_t* p){fb_bus b={p,fbp_write,fbp_idle,fbp_now,fbp_prepare_bw,fbp_begin_gray};return b;}
 static esp_err_t fbp_error(int e){return e==FB_OK?ESP_OK:e==FB_TIMEOUT?ESP_ERR_TIMEOUT:e==FB_ARGUMENT?ESP_ERR_INVALID_ARG:e==FB_LOCKED?ESP_ERR_NOT_SUPPORTED:ESP_FAIL;}
 static esp_err_t fbp_attach(esp_lcd_panel_handle_t panel){
  if(!panel||SSD1677_PANEL_WIDTH!=800||SSD1677_PANEL_HEIGHT!=480)return ESP_ERR_INVALID_ARG;
@@ -73,6 +101,8 @@ esp_err_t fb_panel_normal_guard(esp_lcd_panel_handle_t panel){
  if(e==ESP_OK)e=epaper_panel_load_fast_lut(panel);
  // External gray writes CTRL1=00 00. Explicitly restore the original normal setting.
  if(e==ESP_OK){const uint8_t ctrl[]={0,0};e=esp_lcd_panel_io_tx_param(fbpc.owner->io,0x21,ctrl,2);}
+ // Restore the exact board B/W initialization after the fixed-plane gray path.
+ if(e==ESP_OK){const uint8_t options[]={0,0,0,0,0,0x40,0,0,0,0};e=esp_lcd_panel_io_tx_param(fbpc.owner->io,0x37,options,sizeof(options));}
  if(e!=ESP_OK){fbpc.gray.fault=true;fbpc.gray.baseline_synced=false;}
  fbpc.restoring=false;return e;
 }
@@ -98,3 +128,4 @@ esp_err_t fb_panel_detach(esp_lcd_panel_handle_t p){
  esp_err_t e=fb_panel_normal_guard(p);if(e!=ESP_OK)return e;
  heap_caps_free(fbpc.storage);memset(&fbpc,0,sizeof(fbpc));return ESP_OK;
 }
+#endif

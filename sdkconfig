@@ -672,6 +672,7 @@ CONFIG_USE_AUDIO_PROCESSOR=y
 # PAPER candidate integration
 #
 CONFIG_PAPER_CORE_APP=y
+# CONFIG_PAPER_GRAY_EXPERIMENT is not set
 # CONFIG_PAPER_GRAY_VERIFIED is not set
 # end of PAPER candidate integration
 

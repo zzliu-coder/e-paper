@@ -26,6 +26,8 @@ public:
     void Start();
     // PAPER owns the request lifecycle; no auto-scan or auto-join callbacks.
     esp_err_t StartManual();
+    int LastDisconnectReason() const { return disconnect_reason_.load(); }
+    void ClearDisconnectReason() { disconnect_reason_=0; }
     void Stop();
     /**
      * @brief 待机浅睡：只停射频，保留 netif/事件，避免反复 destroy/create
@@ -69,6 +71,7 @@ private:
     esp_netif_t* station_netif_ = nullptr;
     bool lp_paused_ = false;
     std::atomic<bool> manual_{false};
+    std::atomic<int> disconnect_reason_{0};
     bool fast_reconnect_on_start_ = false; // LP resume：STA_START 直 connect，跳过扫网
     std::string ssid_;
     std::string password_;

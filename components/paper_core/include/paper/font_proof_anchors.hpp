@@ -3,8 +3,31 @@
 namespace paper {
 struct FontProofAnchor { const char* path; const char* sha; };
 inline constexpr FontProofAnchor fontProofAnchors[] = {
+    {"paper/fonts/misans-400-16.pgf", "f19c611a9079e05c96dd4359aeb2a6ad8694c1ba53407050ac553505b7835ec8"},
+    {"paper/fonts/misans-400-17.pgf", "c9ab8417450a9a45b531279c6c25f79bd6f5aea36a752bb9b5ffd42e2eff0277"},
     {"paper/fonts/misans-400-18.pgf", "74c537ffadca505cb341c6fc17f8b25d2aaf3d122f60673abd1833a122e675ee"},
+    {"paper/fonts/misans-400-19.pgf", "2dd933e98abb42ac7be043cf5b486eb12a06d7532753406f82c4454f6b647460"},
+    {"paper/fonts/misans-400-20.pgf", "859afbdb3afb00e2fe3bb9ff9c9976c316aa852ed07e0f7c73da9de421d01a76"},
+    {"paper/fonts/misans-400-21.pgf", "fb7417c1ebba644ff08769566732a590029d6d712c2f50f103dbcc2e438c1b54"},
+    {"paper/fonts/misans-400-22.pgf", "d995b7fff3ae86753d3df1a3556a84d8d7f3dfc121a29ab59e2dd7970ef04581"},
+    {"paper/fonts/misans-400-23.pgf", "7520688c6caae93d70658510db8c6fe097af88b975ae358a8eae6ab200331e80"},
+    {"paper/fonts/misans-400-24.pgf", "2a6b57546eea184e9160540dc09f2a791da0d485835097add8dd8ac96c48230f"},
+    {"paper/fonts/misans-400-25.pgf", "2c527d013041153266df51cbe4af1a860f01841311c4df38ceb6e796e212b68c"},
     {"paper/fonts/misans-400-26.pgf", "178b5f22f5898d010b46e7977dc554344c1622311f3d4d2dcd5fc9dba5e52e54"},
+    {"paper/fonts/misans-400-27.pgf", "ff68d7693561dcc4179d586c6e28fd2e81ab0a12964a887b3d2a9e8de15918a0"},
+    {"paper/fonts/misans-400-28.pgf", "3322dfc3beaf13ae68ec584b00662a43af4fc7463e4c8146fe054a24aaf24fd2"},
+    {"paper/fonts/misans-400-29.pgf", "71405412c59d155c14ba9ce4fe223aebe3fdce5ef264f268c1b5edf427969fb4"},
+    {"paper/fonts/misans-400-30.pgf", "562b4dab8f932fe568459c1696580415a92dee1097f4137ac3f88a4f2cf6609e"},
+    {"paper/fonts/misans-400-31.pgf", "e14d292f32d83efd905c2c5fb3cf3f1747beeebb11ecb6b02cd35033bea17687"},
+    {"paper/fonts/misans-400-32.pgf", "59429e8f152b8ca0b1b3ac1b22b7df131060d64683cb971afef552bbb07d2178"},
+    {"paper/fonts/misans-400-33.pgf", "91bb6ffe9f4c99fbed40577dd77e4d432e94e8a2e6d3eabab1c974cfa0b81ab3"},
+    {"paper/fonts/misans-400-34.pgf", "d140f9a2ad80c3c129c321b7feb4bc951f9c04ddeef0c96f379a64c0a6c32037"},
+    {"paper/fonts/misans-400-35.pgf", "548a02f1dfb3584062da695107acad6881b0b6eea7917a88621b907e49bed55c"},
+    {"paper/fonts/misans-400-36.pgf", "6d640df7a3af2c792ebbc99bbafdf24d699bba657726c1dca2d634161a3922fb"},
+    {"paper/fonts/misans-400-37.pgf", "d5cca3dd34c5817d5cbd68888eed3b70ea36bcf1aac8c19d06fa4f60ec0fb722"},
+    {"paper/fonts/misans-400-38.pgf", "218395cd3671618af14ed45e9c27e48ba81b4ca2693c459c28c53c29f2378b20"},
+    {"paper/fonts/misans-400-39.pgf", "a15d603f6cb574affabb23a42c61ba41944de829aae73c1ec056d4de76ded11f"},
+    {"paper/fonts/misans-400-40.pgf", "b5edd4d12cd2bb0735901ec7ad08b5dc172d6041f5dbcedd3d77a69806596f64"},
     {"paper/fonts/misans-500-32.pgf", "6263add0fd1781304f2011853c4c262173abd78e810ba4b68e3e77e6b91da8a0"},
 };
 }

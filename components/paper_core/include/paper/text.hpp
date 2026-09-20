@@ -73,6 +73,10 @@ namespace paper {
         std::map<std::string,std::string>verified_;
         uint64_t generation_=0;
         uint64_t validations_=0,indexLoads_=0,indexHits_=0,glyphHits_=0,glyphReads_=0;
+        uint64_t indexEvictions_=0,activeEvictions_=0;
+        size_t indexStagingPeak_=0;
+        FontSpec preferredReader_;
+        bool hasPreferredReader_=false;
         uint64_t hashUs_=0,validationUs_=0,indexUs_=0,glyphIoUs_=0,glyphOpens_=0;
         bool batchEnabled_=true;
         bool singlePassVerification_=true;
@@ -109,6 +113,9 @@ namespace paper {
         }
         void clear();
         void clearGlyphCache();
+        // Prefer the active book over incidental UI/preview faces. A small
+        // explicit caller budget still wins; such evictions are observable.
+        void preferReader(const FontSpec*);
         // Release RAM/handles while retaining validation for the same media generation.
         void releaseMemory();
         std::string statistics() const;
@@ -130,6 +137,7 @@ namespace paper {
     class Canvas {
         int width_,height_;
         std::vector<uint8_t>pixels_;
+        bool textDots_=false;
         public: Canvas(int w=480,int h=800):width_(w),height_(h),pixels_((size_t(w)*h+3)/4,255) {
         }
         int width()const {
@@ -150,6 +158,7 @@ namespace paper {
         void arc(int cx,int cy,int radius,double from,double to,uint8_t color,int stroke=8);
         Status text(FontProvider&,FontSpec,const std::string&,Rect,int lineHeight=32,bool inverse=false);
         Status textLine(FontProvider&,FontSpec,const std::string&,int x,int baseline,Rect clip,bool inverse=false);
+        void textDots(bool enabled) { textDots_=enabled; }
         void glyph(const Glyph&,int pen64,int baseline,Rect clip,bool gray=false,bool inverse=false);
         void dots(const std::string&,int x,int y,int step,uint8_t level=0);
         uint32_t checksum()const {

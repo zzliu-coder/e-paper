@@ -11,6 +11,10 @@ void* operator new[](std::size_t size,const std::nothrow_t&) noexcept {
     try{return ::operator new[](size);}catch(...){return nullptr;}
 }
 namespace fs=std::filesystem;
+static uint64_t metric(const paper::PackedFonts& f,const std::string& key){
+    auto s=f.statistics();auto at=s.find("\""+key+"\":");assert(at!=s.npos);
+    return std::stoull(s.substr(at+key.size()+3));
+}
 int main(int argc,char**argv){
     assert(argc==4&&!fs::exists(argv[3]));
     auto root=fs::path(argv[3]);fs::create_directories(root/"paper/fonts");
@@ -18,6 +22,36 @@ int main(int argc,char**argv){
     fs::copy_file(fs::path(argv[1])/"misans-400-26.pgf",root/relative);
     fs::copy_file(fs::path(argv[2])/"misans-400-26.pgf.pfv2",root/(relative+".pfv2"));
     paper::ResourceGate gate;paper::Store store(root.string(),gate);assert(store.initialize());
+    for(int px=16;px<=40;++px){
+        std::string name="misans-400-"+std::to_string(px)+".pgf";
+        if(px!=26){fs::copy_file(fs::path(argv[1])/name,root/"paper/fonts"/name);fs::copy_file(fs::path(argv[2])/(name+".pfv2"),root/"paper/fonts"/(name+".pfv2"));}
+        paper::FontProof all;std::vector<uint8_t> checked;assert(all.open(store,"paper/fonts/"+name,px,400,2*1024*1024,checked));
+        paper::PackedFonts validated(store);paper::Glyph sample;assert(validated.glyph(0x6e05,{px,400,false},sample));
+        assert(validated.statistics().find("\"proof_faces\":1")!=std::string::npos);
+    }
+    // Production-sized indexes WITH sidecars, sharing one cache as a real page
+    // does. The previous test only checked each face in isolation.
+    for(int px=16;px<=40;++px){
+        paper::PackedFonts shared(store);paper::FontSpec body{px,400,false};
+        shared.preferReader(&body);
+        for(int round=0;round<12;++round){
+            for(int size:{18,px,26}){paper::Glyph g;assert(shared.glyph(0x6e05,{size,400,false},g));}
+            if(round==0)continue;
+            const auto expected=px==18||px==26?2u:3u;
+            assert(metric(shared,"validations")==expected);
+            assert(metric(shared,"index_loads")==expected);
+            assert(metric(shared,"active_evictions")==0);
+        }
+    }
+    paper::Budget oldBudget;oldBudget.fontIndex=1536*1024;
+    paper::PackedFonts oldThrash(store,oldBudget);
+    for(int i=0;i<3;++i){assert(oldThrash.validate({18,400,false}));assert(oldThrash.validate({34,400,false}));}
+    assert(metric(oldThrash,"index_loads")==6); // reproduces the old device defect
+    paper::PackedFonts priority(store);paper::FontSpec active{34,400,false};priority.preferReader(&active);
+    assert(priority.validate(active));assert(priority.validate({18,400,false}));assert(priority.validate({26,400,false}));
+    assert(priority.validate({40,400,false}));
+    auto loads=metric(priority,"index_loads");assert(priority.validate(active));
+    assert(metric(priority,"index_loads")==loads&&metric(priority,"active_evictions")==0);
     std::vector<uint8_t> index,bytes;
     paper::FontProof oom;failNext=true;
     assert(oom.open(store,relative,26,400,2*1024*1024,index).code==paper::Error::Unavailable);

@@ -11,6 +11,9 @@ namespace paper {
     NetworkState MetalioHardware::network()const {return paper_network::Snapshot();}
     Status MetalioHardware::networkCommand(const std::string&a,const std::string&s,const std::string&p){return paper_network::Command(a,s,p);}
     bool MetalioHardware::supports(const std::string&k)const {
+#ifdef CONFIG_PAPER_GRAY_EXPERIMENT
+        if(k=="gray4_experiment")return true;
+#endif
         if(k=="wifi")return true;
         if(k=="bt_audio_mode")return bluetooth().available;
 #ifdef CONFIG_PAPER_GRAY_VERIFIED

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 #define FB_FRAME_BYTES 48000u
-#define FB_GRAY_PROFILE "GDEM0397T81-freeink-094976e1-overlay-v1"
+#define FB_GRAY_PROFILE "GDEM0397T81-isolated-black-pulse-v4"
 #define FB_GRAY_TIMEOUT_MS 10000u
 #define FB_GRAY_MAX_FAST 8u
 #define FB_GRAY_PHASES 12u
@@ -20,6 +20,13 @@ typedef struct {
  int (*write)(void*,int command,const uint8_t*,size_t);
  int (*wait_idle)(void*,uint32_t timeout_ms);
  uint32_t (*millis)(void*);
+ /* Optional board MCU-LUT baseline. With this hook every frame cleans via C4;
+  * no OTP F7/FC or differential baseline reuse is allowed. */
+ int (*prepare_bw)(void*);
+ /* Optional isolated controller entry; called only after BUSY is idle.
+  * This resets the display controller, never the MCU, and owns the entire
+  * gray transaction. Board B/W state must be restored before normal drawing. */
+ int (*begin_gray)(void*);
 } fb_bus;
 typedef struct {uint8_t sequence;uint32_t elapsed_ms;bool complete;} fb_phase;
 typedef struct {

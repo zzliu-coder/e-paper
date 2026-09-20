@@ -857,7 +857,25 @@ JRESULT jd_mcu_output(
     rect.bottom = y + ry - 1;
 
 
-    if(!JD_USE_SCALE || jd->scale != 3) {   /* Not for 1/8 scaling */
+    if(JD_FORMAT == 2) {
+        /* The vendored RGB-only variant omitted the grayscale output path.
+         * Gather Y blocks in MCU raster order and average each scale tile.
+         * scale=3 uses DC-filled Y blocks produced by jd_mcu_load. */
+        unsigned int step = 1U << jd->scale;
+        pix = (uint8_t *)jd->workbuf;
+        for(iy = 0; iy < my; iy += step) {
+            for(ix = 0; ix < mx; ix += step) {
+                unsigned int dx, dy, sum = 0;
+                for(dy = 0; dy < step; ++dy) for(dx = 0; dx < step; ++dx) {
+                    unsigned int sx = ix + dx, sy = iy + dy;
+                    unsigned int block = (sy / 8) * jd->msx + sx / 8;
+                    sum += BYTECLIP(jd->mcubuf[block * 64 + (sy % 8) * 8 + sx % 8]);
+                }
+                *pix++ = (uint8_t)((sum + step * step / 2) / (step * step));
+            }
+        }
+    }
+    else if(!JD_USE_SCALE || jd->scale != 3) {   /* Not for 1/8 scaling */
         pix = (uint8_t *)jd->workbuf;
 
         if(JD_FORMAT != 2) {    /* RGB output (build an RGB MCU from Y/C component) */

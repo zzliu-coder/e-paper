@@ -68,7 +68,9 @@ namespace paper {
         size_t glyphCache=256*1024;
         size_t chapterBytes=768*1024;
         size_t documentIndex=256*1024;
-        size_t fontIndex=1536*1024;
+        // Resident indexes AND proof/block storage: body + dynamic heading +
+        // preview. Allocation staging is measured separately, not hidden here.
+        size_t fontIndex=2560*1024;
         size_t uiFontIndex=256*1024;
         size_t candidateCount=64;
     };

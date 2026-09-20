@@ -5,6 +5,13 @@ config PAPER_CORE_APP
     help
         Candidate source integration. Enable only after preserving the current
         working image. This is not a full CrossMux reader parity implementation.
+config PAPER_GRAY_EXPERIMENT
+    bool "Enable isolated same-panel grayscale comparison page"
+    depends on PAPER_CORE_APP
+    default n
+    help
+        Enables only the explicit test page, not reader grayscale defaults.
+        Requires the Metalio GDEM0397T81 / SSD1677 panel and visual acceptance.
 config PAPER_GRAY_VERIFIED
     bool "Physical grayscale already validated on this exact Metalio panel"
     depends on PAPER_CORE_APP

@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 
 #include "display.h"
 #include "esp_lv_adapter.h"
@@ -89,7 +90,7 @@ public:
     esp_err_t RefreshDiagnostic(bool full = true, bool yieldGui = false);
     bool IsPaperPresenting() const;
 #if CONFIG_PAPER_CORE_APP
-    esp_err_t RefreshPaper(const uint8_t* portrait2,size_t bytes,bool full,bool gray);
+    esp_err_t RefreshPaper(const uint8_t* portrait2,size_t bytes,bool full,bool gray,std::string* receipt=nullptr);
     esp_err_t RecoverPaper();
 #endif
     esp_err_t RefreshFontBench(paper::fontbench::Session&,bool full,uint8_t* packed_luma,size_t capacity);

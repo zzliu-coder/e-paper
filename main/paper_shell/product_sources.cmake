@@ -10,7 +10,9 @@ if(CONFIG_PAPER_CORE_APP)
         "paper_shell/bluetooth_service.cc"
         "paper_shell/maintenance.cc"
         "paper_shell/standby.cc"
-        "paper_shell/rescue_fonts.c"
-        "paper_shell/gray/driver.c")
+        "paper_shell/rescue_fonts.c")
+    if(CONFIG_PAPER_GRAY_EXPERIMENT OR CONFIG_PAPER_GRAY_VERIFIED)
+        list(APPEND SOURCES "paper_shell/gray/driver.c")
+    endif()
     list(APPEND INCLUDE_DIRS "paper_shell")
 endif()

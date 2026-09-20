@@ -104,6 +104,7 @@ QueueHandle_t input_events = nullptr;
 QueueHandle_t jobs = nullptr;
 std::atomic<bool> ready{false};
 std::atomic<unsigned> dropped{0};
+std::atomic<unsigned> input_overflow{0},tx_timeout{0},frame_oversize{0},encode_failure{0},task_failure{0};
 std::atomic<unsigned> job_id{0};
 std::atomic<unsigned> job_done{0};
 std::atomic<int> job_result{0};
@@ -167,6 +168,7 @@ const char* TouchRegion(int x, int y) {
 
 void QueueInput(const InputEvent& event) {
     if (input_events == nullptr || xQueueSend(input_events, &event, 0) != pdTRUE) {
+        input_overflow++;
         dropped++;
     }
 }
@@ -192,6 +194,9 @@ void Send(cJSON* json) {
     Num(json, "seq", ++seq);
     Num(json, "uptime_ms", esp_timer_get_time() / 1000);
     Num(json, "dropped", dropped.load());
+    auto* losses=cJSON_AddObjectToObject(json,"losses");
+    Num(losses,"input_overflow",input_overflow.load());Num(losses,"tx_timeout",tx_timeout.load());
+    Num(losses,"frame_oversize",frame_oversize.load());Num(losses,"encode_failure",encode_failure.load());Num(losses,"task_failure",task_failure.load());
     Str(json, "boot_id", boot);
     Str(json, "device_id", device);
 
@@ -203,13 +208,16 @@ void Send(cJSON* json) {
         int n = std::snprintf(frame, sizeof(frame), "ML1 %s\n", raw);
         if (n > 0 && n < static_cast<int>(sizeof(frame))) {
             if (usb_serial_jtag_write_bytes(frame, n, pdMS_TO_TICKS(20)) != n) {
+                tx_timeout++;
                 dropped++;
             }
         } else {
+            frame_oversize++;
             dropped++;
         }
         cJSON_free(raw);
     } else {
+        encode_failure++;
         dropped++;
     }
     cJSON_Delete(json);
@@ -1436,6 +1444,7 @@ void Hardware(void*) {
     selftest::Start();
     inkdesk_app::Start();
     if (xTaskCreate(InputPoll, "sdk_input", 4096, nullptr, 4, nullptr) != pdPASS) {
+        task_failure++;
         dropped++;
     }
 

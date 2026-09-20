@@ -15,7 +15,7 @@ Status FontProof::open(Store&store,const std::string&relative,int px,int weight,
     FILE*pf=fopen(path.c_str(),"rb");if(!pf)return Status::fail(Error::NotFound,"缺少字体校验索引，执行全量校验");
     if(fseek(pf,0,SEEK_END)){fclose(pf);return bad();}
     const long length=ftell(pf);
-    if(length<160||length>128*1024||fseek(pf,0,SEEK_SET)){fclose(pf);return bad();}
+    if(length<160||length>256*1024||fseek(pf,0,SEEK_SET)){fclose(pf);return bad();}
     proofSize_=size_t(length);proof_.reset(new(std::nothrow)uint8_t[proofSize_]);
     if(!proof_){fclose(pf);return Status::fail(Error::Unavailable,"字体校验索引内存不足");}
     const bool proofRead=fread(proof_.get(),1,proofSize_,pf)==proofSize_;fclose(pf);

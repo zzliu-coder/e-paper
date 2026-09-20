@@ -7,6 +7,11 @@
 #include <cstdio>
 #include <chrono>
 namespace paper {
+    void PackedFonts::preferReader(const FontSpec* spec){
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        hasPreferredReader_=spec!=nullptr;
+        if(spec)preferredReader_=*spec;
+    }
     void PackedFonts::clearGlyphCache(){
         std::lock_guard<std::recursive_mutex> guard(mutex_);
         cache_.clear();cacheLookup_.clear();bytes_=0;
@@ -145,11 +150,19 @@ namespace paper {
             for(auto&x:faces_)if(x.uiOnly==s.uiOnly)n+=x.index.size()+(x.proof?x.proof->reservedBytes():0);
             return n;
         };
-        while(used()+n.index.size()+(n.proof?n.proof->reservedBytes():0)>indexBudget) {
+        const auto incoming=n.index.size()+(n.proof?n.proof->reservedBytes():0);
+        if(!s.uiOnly)indexStagingPeak_=std::max(indexStagingPeak_,used()+incoming);
+        auto preferred=[this](const Face& f){return hasPreferredReader_&&!f.uiOnly&&
+            f.px==preferredReader_.px&&f.weight==preferredReader_.weight&&
+            f.family==preferredReader_.family&&f.revision==preferredReader_.revision;};
+        while(used()+incoming>indexBudget) {
             auto it=faces_.end();
             for(auto p=faces_.begin();p!=faces_.end();++p)
-                if(p->uiOnly==s.uiOnly&&(it==faces_.end()||p->used<it->used))it=p;
+                if(p->uiOnly==s.uiOnly&&(it==faces_.end()||
+                    (preferred(*it)&&!preferred(*p))||
+                    (preferred(*it)==preferred(*p)&&p->used<it->used)))it=p;
             if(it==faces_.end())return Status::fail(Error::TooLarge,"字体索引预算不足");
+            ++indexEvictions_;if(preferred(*it))++activeEvictions_;
             faces_.erase(it);
         }
         ++indexLoads_;
@@ -305,7 +318,7 @@ namespace paper {
         size_t ui=0,reader=0,proofs=0,proofBytes=0;
         for(auto&f:faces_)(f.uiOnly?ui:reader)+=f.index.size();
         for(auto&f:faces_)if(f.proof){++proofs;proofBytes+=f.proof->reservedBytes();}
-        return "{\"proof_faces\":"+std::to_string(proofs)+",\"proof_reserved_bytes\":"+std::to_string(proofBytes)+",\"batch_io\":"+std::string(batchEnabled_?"true":"false")+",\"hash_us\":"+std::to_string(hashUs_)+",\"validation_us\":"+std::to_string(validationUs_)+",\"index_us\":"+std::to_string(indexUs_)+",\"glyph_io_us\":"+std::to_string(glyphIoUs_)+",\"glyph_opens\":"+std::to_string(glyphOpens_)+",\"generation\":"+std::to_string(generation_)+",\"validations\":"+std::to_string(validations_)+",\"index_loads\":"+std::to_string(indexLoads_)+",\"index_hits\":"+std::to_string(indexHits_)+",\"glyph_hits\":"+std::to_string(glyphHits_)+",\"glyph_reads\":"+std::to_string(glyphReads_)+",\"ui_index_bytes\":"+std::to_string(ui)+",\"reader_index_bytes\":"+std::to_string(reader)+"}";
+        return "{\"index_budget_bytes\":"+std::to_string(budget_.fontIndex)+",\"index_staging_peak_bytes\":"+std::to_string(indexStagingPeak_)+",\"index_evictions\":"+std::to_string(indexEvictions_)+",\"active_evictions\":"+std::to_string(activeEvictions_)+",\"proof_faces\":"+std::to_string(proofs)+",\"proof_reserved_bytes\":"+std::to_string(proofBytes)+",\"batch_io\":"+std::string(batchEnabled_?"true":"false")+",\"hash_us\":"+std::to_string(hashUs_)+",\"validation_us\":"+std::to_string(validationUs_)+",\"index_us\":"+std::to_string(indexUs_)+",\"glyph_io_us\":"+std::to_string(glyphIoUs_)+",\"glyph_opens\":"+std::to_string(glyphOpens_)+",\"generation\":"+std::to_string(generation_)+",\"validations\":"+std::to_string(validations_)+",\"index_loads\":"+std::to_string(indexLoads_)+",\"index_hits\":"+std::to_string(indexHits_)+",\"glyph_hits\":"+std::to_string(glyphHits_)+",\"glyph_reads\":"+std::to_string(glyphReads_)+",\"ui_index_bytes\":"+std::to_string(ui)+",\"reader_index_bytes\":"+std::to_string(reader)+"}";
     }
     Status PackedFonts::validate(const FontSpec&s) {
         std::lock_guard<std::recursive_mutex>l(mutex_);
@@ -520,7 +533,13 @@ namespace paper {
                 if(!clip.contains(px,py))continue;
                 size_t i=size_t(y)*g.width+xx;
                 int a=(g.coverage2[i/4]>>(6-2*(i%4)))&3;
-                if(!gray)a=a>=2?3:0;
+                if(!gray) {
+                    // Binary coverage, anchored to panel pixels: no intermediate
+                    // gray output, frame copy, or change to glyph metrics.
+                    static constexpr int order[2][2]={{0,2},{3,1}};
+                    static constexpr int white[4]={0,1,3,4};
+                    a=textDots_?(order[py&1][px&1]>=white[3-a]?3:0):(a>=2?3:0);
+                }
                 if(a) {
                     int bg=pixel(px,py),fg=inverse?3:0;
                     pixel(px,py,uint8_t((fg*a+bg*(3-a)+1)/3));

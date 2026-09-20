@@ -15,10 +15,10 @@ def main():
     assert image==(args.build/"xiaozhi.bin").read_bytes()
     checked=check_app(image,0,len(image));assert checked["image_bytes"]==len(image)
     files=[]
-    for name in ("components/paper_core","components/paper_reader_crossmux","main/paper_shell",
+    for name in ("components/paper_core","components/paper_reader_crossmux","components/esp-wifi-connect","main/paper_shell",
                  "tests/paper-maintenance","host","docs","design-tokens"):
         files += [p for p in (sdk/name).rglob("*") if p.is_file() and not p.is_symlink()
-                  and (p.suffix in (".c",".h",".cc",".cpp",".hpp",".cmake",".py",".md",".json",".txt",".t") or p.name.startswith(("LICENSE","NOTICE")))
+                  and (p.suffix in (".c",".h",".cc",".cpp",".hpp",".inc",".cmake",".py",".md",".json",".txt",".t") or p.name=="Kconfig.projbuild" or p.name.startswith(("LICENSE","NOTICE")))
                   and "__pycache__" not in p.parts]
     for name in ("LICENSE","CMakeLists.txt","sdkconfig","dependencies.lock","main/CMakeLists.txt",
                  "main/personal_sdk.cc","main/boards/common/power_policy/power_hw.cc",
@@ -36,6 +36,12 @@ def main():
             "source_files":{str(p.relative_to(sdk)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
             "build_files":{n:hashlib.sha256((args.build/n).read_bytes()).hexdigest() for n in
                 ("config/sdkconfig.h","partition_table/partition-table.bin","bootloader/bootloader.bin")}}
+    resources=release/'resources.json'
+    if resources.exists():
+        resource_manifest=json.loads(resources.read_text())
+        assert resource_manifest['schema']==1 and resource_manifest['version']==manifest['version']
+        record['resources']={'manifest':'resources.json','sha256':hashlib.sha256(resources.read_bytes()).hexdigest(),
+                             'files':len(resource_manifest['files']),'device_verification':'separate receipt required'}
     with (release/"source-manifest.json").open("x") as f:json.dump(record,f,ensure_ascii=False,indent=2);f.write("\n")
     with tarfile.open(release/"reader-overlay.tar.gz","x:gz") as archive:
         for file in files:archive.add(file,arcname=str(file.relative_to(sdk)),recursive=False)

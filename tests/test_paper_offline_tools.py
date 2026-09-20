@@ -42,7 +42,7 @@ class OfflineToolsTest(unittest.TestCase):
                 else:
                     with self.assertRaises(RuntimeError):paper_action.action('next')
     def test_identical_action_from_other_request_is_not_success(self):
-        before={'boot_id':'b','receipt_token_version':1,'performance':{'completed':1}}
+        before={'boot_id':'b','receipt_token_version':1,'performance':{'completed':1},'app':{'revision':1,'presented':1}}
         after={'boot_id':'b','last_request_token':'old-request','last_action':'next','performance':{'completed':2}}
         with patch.object(paper_action,'query',side_effect=[before,{},after]):
             with self.assertRaisesRegex(RuntimeError,'Different request'):paper_action.action('next')

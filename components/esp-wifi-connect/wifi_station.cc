@@ -340,6 +340,8 @@ void WifiStation::SetPowerSaveMode(bool enabled) {
 // Static event handler functions
 void WifiStation::WifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     auto* this_ = static_cast<WifiStation*>(arg);
+    if(event_id==WIFI_EVENT_STA_DISCONNECTED&&event_data)
+        this_->disconnect_reason_=static_cast<wifi_event_sta_disconnected_t*>(event_data)->reason;
     if(this_->manual_){
         if(event_id==WIFI_EVENT_STA_DISCONNECTED||event_id==WIFI_EVENT_STA_STOP)
             xEventGroupClearBits(this_->event_group_,WIFI_EVENT_CONNECTED);

@@ -53,6 +53,7 @@ void work(Request&r){
     if(r.ssid.empty()||r.ssid.size()>32||r.password.size()>63){finish("保存的网络信息无效，请重新输入");return;}
     wifi_config_t config={};memcpy(config.sta.ssid,r.ssid.data(),r.ssid.size());memcpy(config.sta.password,r.password.data(),r.password.size());
     esp_wifi_disconnect();vTaskDelay(pdMS_TO_TICKS(80));
+    station.ClearDisconnectReason();
     err=esp_wifi_set_config(WIFI_IF_STA,&config);memset(config.sta.password,0,sizeof config.sta.password);
     if(err==ESP_OK)err=esp_wifi_connect();
     bool connected=false;const auto deadline=esp_timer_get_time()+20000000;
@@ -62,7 +63,18 @@ void work(Request&r){
             char address[16];esp_ip4addr_ntoa(&ip.ip,address,sizeof address);std::lock_guard<std::mutex> l(mutex);state.connected=true;state.ssid=r.ssid;state.ip=address;connected=true;break;}
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-    if(!connected){esp_wifi_disconnect();finish(err==ESP_OK?"连接超时，请检查密码和网络":std::string("连接失败：")+esp_err_to_name(err));return;}
+    if(!connected){
+        const auto reason=station.LastDisconnectReason();
+        wifi_ap_record_t current={};const bool associated=esp_wifi_sta_get_ap_info(&current)==ESP_OK;
+        esp_wifi_disconnect();
+        std::string message;
+        if(err!=ESP_OK)message=std::string("连接失败：")+esp_err_to_name(err);
+        else if(reason==WIFI_REASON_NO_AP_FOUND)message="未找到已保存热点，请检查热点是否开启及距离";
+        else if(reason==WIFI_REASON_AUTH_FAIL||reason==WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT||reason==WIFI_REASON_HANDSHAKE_TIMEOUT)message="热点认证失败，请检查密码或热点安全设置";
+        else if(associated)message="已连接热点，但未取得 IP，请检查路由器地址分配";
+        else message="无线连接未完成，请重试或重新选择热点";
+        finish(message+"（原因 "+std::to_string(reason)+"）");return;
+    }
     err=remember(r);finish(err==ESP_OK?"已连接，网络信息已保存":"已连接，但保存失败，请重试");
 }
 void worker(void*arg){auto*r=static_cast<Request*>(arg);work(*r);std::fill(r->password.begin(),r->password.end(),'\0');delete r;vTaskDelete(nullptr);}
@@ -72,6 +84,12 @@ paper::NetworkState Snapshot(){
     if(out.connected&&!WifiStation::GetInstance().IsConnected()){out.connected=false;out.ip.clear();if(!out.busy)out.message="连接已断开，可重新连接";}return out;
 }
 bool WantsRadio(){return wantsRadio.load();}
+std::string SavedSsid(){
+    nvs_handle_t h;if(nvs_open("paper_wifi",NVS_READONLY,&h)!=ESP_OK)return {};
+    char ssid[33]={};size_t size=sizeof ssid;
+    const bool ok=nvs_get_str(h,"ssid",ssid,&size)==ESP_OK;nvs_close(h);
+    return ok?std::string(ssid,strnlen(ssid,32)):std::string();
+}
 paper::Status Command(const std::string&a,const std::string&s,const std::string&p){
     if(a!="scan"&&a!="connect"&&a!="saved"&&a!="off")return paper::Status::fail(paper::Error::Invalid,"未知网络操作");
     if(a=="connect"&&(s.empty()||s.size()>32||p.size()>63||(!p.empty()&&p.size()<8)||s.find('\0')!=s.npos||p.find('\0')!=p.npos))return paper::Status::fail(paper::Error::Invalid,"网络名称或密码长度无效");

@@ -12,13 +12,28 @@ def query(command,**params):
     return r['result']
 
 
-def action(name,value='',timeout=300):
-    before=query('paper.status');start=time.monotonic()
+def action(name,value='',timeout=300,status_retries=0):
+    start=time.monotonic();before=query('paper.status')
+    initial_boot=before.get('boot_id')
+    # Transport hello can precede application/frame initialization after boot.
+    # Wait read-only before dispatching; never replay a submitted command.
+    while not {'revision','presented'}<=before.get('app',{}).keys():
+        if time.monotonic()-start>=timeout:raise TimeoutError('Application not ready; command not sent')
+        time.sleep(.2);before=query('paper.status')
+        if before.get('boot_id')!=initial_boot:raise RuntimeError('Device restarted while waiting for application')
     if before.get('receipt_token_version')!=1:raise RuntimeError('This tool requires perf9 token receipts; firmware was not changed')
     token=uuid.uuid4().hex
     query('paper.command',action=name,value=value,request_token=token)
     while time.monotonic()-start<timeout:
-        s=query('paper.status')
+        try:
+            s=query('paper.status')
+        except RuntimeError as exc:
+            # Opt-in bounded recovery of a read-only status query. Never resend
+            # paper.command; the original token and boot still must match.
+            if status_retries>0 and 'No reply to paper.status;' in str(exc):
+                status_retries-=1
+                continue
+            raise
         if s['boot_id']!=before['boot_id']:raise RuntimeError('Device restarted; outcome unconfirmed')
         if s['performance']['completed']>before['performance']['completed']:
             if s.get('last_request_token')!=token:raise RuntimeError('Different request completed; outcome unconfirmed')

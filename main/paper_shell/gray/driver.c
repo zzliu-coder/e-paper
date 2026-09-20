@@ -68,7 +68,19 @@ static int sync_base(fb_gray_state* s,const fb_bus* b,const uint8_t* base){
  TRY(ram(s,b,0x24,base,0));TRY(ram(s,b,0x26,base,0));s->baseline_synced=true;return FB_OK;
 }
 static int clean(fb_gray_state* s,const fb_bus* b,const uint8_t* target,bool full){
- if(full){TRY(bw(s,b,target,0,NULL,255,0xF7));}
+ if(b->prepare_bw){
+  TRY(idle(s,b));
+  /* SSD1677 rev1 p32: R37 F[6] swaps RAM banks in Display Mode 2.
+   * The board enables it for monochrome partial updates. Selector planes
+   * require stable bank identities across C4/CC and repeated frames. */
+  const uint8_t options[10]={0};TRY(tx(s,b,0x37,options,sizeof(options)));
+  int e=b->prepare_bw(b->context);if(e!=FB_OK)return fail(s,e);
+  TRY(ram(s,b,0x26,NULL,255));TRY(ram(s,b,0x24,target,0));
+  const uint8_t ctrl[]={0,0};TRY(tx(s,b,0x21,ctrl,2));
+  TRY(one(s,b,0x3C,0x80));TRY(one(s,b,0x3F,0x02));
+  TRY(activate(s,b,0xC4));
+ }
+ else if(full){TRY(bw(s,b,target,0,NULL,255,0xF7));}
  else{
   TRY(bw(s,b,NULL,0,NULL,255,0xFC)); /* white previous -> black */
   TRY(bw(s,b,target,0,NULL,0,0xFC)); /* black -> target */
@@ -89,7 +101,22 @@ int fb_gray_present(fb_gray_state* s,const fb_bus* b,const uint8_t* base,const u
  if(s->fault)return FB_FAULT;
  memset(&s->last,0,sizeof(s->last));s->last.grayscale=gray;const uint32_t started=b->millis(b->context);
  TRY(idle(s,b));
- const bool needs=full||!s->active||!s->baseline_synced||s->fast_since_clean>=FB_GRAY_MAX_FAST||(!gray&&s->gray_residue);
+ if(gray&&b->begin_gray){
+  /* Match FreeInk's Metalio BlackPulse contract end to end. The previous
+   * MCU-LUT/C4 baseline mixed two different controller lifecycles and kept
+   * opaque B/W register state (including 0x3F) across the transition. */
+  int e=b->begin_gray(b->context);if(e!=FB_OK)return fail(s,e);
+  s->active=true;s->baseline_synced=false;s->powered=false;
+  TRY(bw(s,b,NULL,0,NULL,255,0xFC));
+  TRY(sync_base(s,b,NULL));
+  TRY(bw(s,b,base,0,NULL,0,0xFC));
+  TRY(sync_base(s,b,base));
+  s->last.cleaned=true;s->fast_since_clean=0;
+  TRY(overlay(s,b,base,lo,hi));TRY(one(s,b,0x3C,0x80));TRY(activate(s,b,0x83));
+  s->last.success=true;s->last.baseline_synced=true;s->last.total_ms=b->millis(b->context)-started;
+  return FB_OK;
+ }
+ const bool needs=b->prepare_bw||full||!s->active||!s->baseline_synced||s->fast_since_clean>=FB_GRAY_MAX_FAST||(!gray&&s->gray_residue);
  if(needs){TRY(clean(s,b,base,full||!s->active));}
  else { /* RED already holds the committed B/W baseline. */
   TRY(ram(s,b,0x24,base,0));const uint8_t ctrl[]={0,0};TRY(tx(s,b,0x21,ctrl,2));TRY(one(s,b,0x18,0x80));TRY(one(s,b,0x3C,0x80));TRY(activate(s,b,0xFC));TRY(sync_base(s,b,base));++s->fast_since_clean;

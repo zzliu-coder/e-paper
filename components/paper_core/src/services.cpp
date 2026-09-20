@@ -4,6 +4,7 @@
 namespace paper {
     const std::vector<SettingDef>&settingDefinitions() {
         static const std::vector<SettingDef>defs= {
+            {"text_render","文字显示","显示",{"dots","mono"},"dots",false},
             {"epub_engine","电子书排版","显示",{"crossmux","local"},"crossmux",false},
             {
                 "reader_px","阅读字号","显示", {

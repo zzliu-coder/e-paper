@@ -74,6 +74,9 @@ namespace paper {
         };
     }
     Status Runtime::draw() {
+        const auto activeStyle=reader_.style();
+        fonts_.preferReader(reader_.opened()?&activeStyle.font:nullptr);
+        canvas_.textDots(settings_.get("text_render")=="dots");
         // The USB hand-off page is composed while SD fonts are still readable.
         // Reuse that exact canvas while the host owns SD; never reload a font here.
         if(gate_.held("usb")){frameReady_=true;return {};}
@@ -109,7 +112,6 @@ namespace paper {
                 button({24,452,432,56},"安装已检查的固件","maintenance-install");
                 button({24,520,432,56},"开发保持唤醒 / 切换","maintenance-awake");
                 button({24,588,432,56},"重启设备","maintenance-reboot");
-                paragraph({24,666,432,80},"电脑可通过 USB 读取日志和传输文件。\n恢复操作请按项目内的恢复说明进行。",18,400,28);
                 footnote("MiSans · 本地开发 · 保留恢复通道");
                 break;
             }
@@ -122,6 +124,7 @@ namespace paper {
         :Status::fail(Error::ResourceMissing,textError_);
     }
     Status Runtime::run(const std::string&a,const std::string&v) {
+        if(a=="text-render")return settings_.apply("text_render",v);
         if(a=="glyph-lookahead"){
             if(v!="on"&&v!="off")return Status::fail(Error::Invalid,"字形预备模式无效");
             glyphLookahead_=v=="on";glyphPreparationError_.clear();glyphPrepared_=0;
@@ -214,7 +217,13 @@ namespace paper {
             if(st){selectedFile_=path;screen_=Screen::Reading;auto saved=store_.saveRecord("recent-book",path);if(!saved)notice_="本次可阅读；最近阅读记录未保存";}
             return st;
         }
-        if(a=="continue"){if(selectedFile_.empty())return Status::fail(Error::NotFound,"尚无最近阅读");auto st=reader_.open(selectedFile_);if(st)screen_=Screen::Reading;return st;}
+        if(a=="continue"){
+            if(selectedFile_.empty())return Status::fail(Error::NotFound,"尚无最近阅读");
+            // Settings/home retain the open reader and its exact page. USB
+            // handoff, rename and engine changes close it before mutation.
+            if(reader_.opened()){screen_=Screen::Reading;return {};}
+            auto st=reader_.open(selectedFile_);if(st)screen_=Screen::Reading;return st;
+        }
         if(a=="next"||a=="prev"){
             if(screen_==Screen::Reading)return a=="next"?reader_.next():reader_.previous();
             if(screen_==Screen::Network)return run(a=="next"?"network-next":"network-prev","");
@@ -553,6 +562,7 @@ namespace paper {
     std::string Runtime::snapshot()const {
         std::lock_guard<std::recursive_mutex>lock(mutex_);
         std::ostringstream o;
+        // Experimental state never updates the stored reader style.
         o<<"{\"version\":\"paper-glyph-3.0\",\"environment\":"<<jsonString(hw_.environment())<<",\"screen\":"<<int(screen_)<<",\"revision\":"<<revision_<<",\"presented\":"<<presented_<<",\"error\":"<<jsonString(lastStatus_.message)<<",\"font_error\":"<<jsonString(textError_)<<",\"notice\":"<<jsonString(notice_)<<",\"glyph_cache_bytes\":"<<fonts_.cacheBytes()<<",\"voice\":{\"recording\":false,\"transcription\":false},\"reader\":{\"open\":"<<(reader_.opened()?"true":"false")<<",\"engine\":"<<jsonString(reader_.metadata().engine)<<",\"chapter\":"<<reader_.location().chapter<<",\"offset\":"<<reader_.location().offset<<",\"page_hint\":"<<(reader_.location().pageHint==SIZE_MAX?-1:int(reader_.location().pageHint))<<readerFontSnapshot()<<"},\"settings\":{";
         bool first=true;
         for(auto&d:settingDefinitions()) {
@@ -561,7 +571,7 @@ namespace paper {
             std::string value=effectiveSetting(d.key);
             o<<jsonString(d.key)<<":"<<jsonString(value);
         }
-        o<<"},\"input\":{\"active\":"<<(input_.active()?"true":"false")<<",\"visible\":"<<jsonString(input_.visible())<<",\"preedit\":"<<jsonString(input_.preedit())<<",\"generation\":"<<input_.generation()<<",\"candidates\":[";
+        o<<"},\"frame_crc\":"<<canvas_.checksum()<<",\"input\":{\"active\":"<<(input_.active()?"true":"false")<<",\"visible\":"<<jsonString(input_.visible())<<",\"preedit\":"<<jsonString(input_.preedit())<<",\"generation\":"<<input_.generation()<<",\"candidates\":[";
         first=true;
         for(auto&c:input_.candidates()) {
             if(!first)o<<',';
