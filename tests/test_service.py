@@ -70,3 +70,34 @@ def test_service_keeps_existing_client_between_calls():
     for _ in range(3):
         assert session.execute({"cmd": "ping"})["boot_id"] == "unchanged"
     assert session.client is first
+
+
+def test_reboot_rehandshake_preserves_transport(monkeypatch):
+    import service
+    transport=object()
+    class Fake:
+        def __init__(self,link,journal,expected_device):assert link is transport
+        def hello(self):return {"device_id":"1020ba6e0be0","boot_id":"new"}
+    monkeypatch.setattr(service,"Client",Fake)
+    monkeypatch.setattr(service,"wait_until_ready",lambda client:None)
+    monkeypatch.setattr(service,"open_serial",lambda port:pytest.fail("Must preserve transport"))
+    session=Session(None,None);session.link=transport;session.client=object()
+    session.invalidate_protocol();session.connect()
+    assert session.link is transport and session.hello["boot_id"]=="new"
+
+
+@pytest.mark.parametrize('during', ['hello', 'ready'])
+def test_reboot_during_rehandshake_preserves_transport(monkeypatch, during):
+    import service
+    transport=object()
+    def reboot():raise service.DeviceRebooted('test reboot')
+    class Fake:
+        def __init__(self,link,journal,expected_device):assert link is transport
+        def hello(self):
+            if during=='hello':reboot()
+            return {'boot_id':'new'}
+    monkeypatch.setattr(service,'Client',Fake)
+    monkeypatch.setattr(service,'wait_until_ready',lambda client:reboot())
+    session=Session(None,None);session.link=transport
+    with pytest.raises(service.DeviceRebooted):session.connect()
+    assert session.link is transport and session.client is None and session.hello is None

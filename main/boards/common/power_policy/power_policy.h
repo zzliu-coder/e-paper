@@ -31,6 +31,7 @@ enum class PowerNeed : uint8_t {
     UiKeepNet,     // 翻译页保网满频；本页不参与 PA_en
     UsbVirtualDisk, // 虚拟 U 盘启用：不计无操作进待机（不硬占网）
     StandbyInhibit, // 产测老化等：禁止无操作进待机；不硬占网、不驱动 PA（PA 仍靠 DeviceState）
+    PeripheralControl, // 外置蓝牙控制会话：仅保持外设供电和唤醒，不开启功放/无线网络
     kCount
 };
 

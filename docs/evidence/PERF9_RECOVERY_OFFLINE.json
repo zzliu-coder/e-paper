@@ -1,0 +1,98 @@
+{
+  "result": "PASS",
+  "scope": "offline backup bytes only",
+  "path": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/outputs/metalio-eink4-backup-2026-09-15/full-flash-0x00000000-0x01000000.bin",
+  "bytes": 16777216,
+  "sha256": "5b7986151b18163f9087611edfedd563c49e37c32c12d999d0e0fa3d82a1cfaf",
+  "partition_md5": "PASS",
+  "partitions": [
+    {
+      "name": "nvs",
+      "type": 1,
+      "subtype": 2,
+      "address": 36864,
+      "bytes": 16384,
+      "flags": 0
+    },
+    {
+      "name": "otadata",
+      "type": 1,
+      "subtype": 0,
+      "address": 53248,
+      "bytes": 8192,
+      "flags": 0
+    },
+    {
+      "name": "phy_init",
+      "type": 1,
+      "subtype": 1,
+      "address": 61440,
+      "bytes": 4096,
+      "flags": 0
+    },
+    {
+      "name": "model",
+      "type": 1,
+      "subtype": 130,
+      "address": 65536,
+      "bytes": 409600,
+      "flags": 0
+    },
+    {
+      "name": "ota_0",
+      "type": 0,
+      "subtype": 16,
+      "address": 524288,
+      "bytes": 5242880,
+      "flags": 0
+    },
+    {
+      "name": "ota_1",
+      "type": 0,
+      "subtype": 17,
+      "address": 5767168,
+      "bytes": 5242880,
+      "flags": 0
+    },
+    {
+      "name": "resources",
+      "type": 1,
+      "subtype": 130,
+      "address": 11010048,
+      "bytes": 409600,
+      "flags": 0
+    },
+    {
+      "name": "font_data",
+      "type": 1,
+      "subtype": 64,
+      "address": 11419648,
+      "bytes": 5242880,
+      "flags": 0
+    },
+    {
+      "name": "coredump",
+      "type": 1,
+      "subtype": 3,
+      "address": 16662528,
+      "bytes": 65536,
+      "flags": 0
+    }
+  ],
+  "apps": [
+    {
+      "name": "ota_0",
+      "state": "VALID",
+      "offset": "0x80000",
+      "image_bytes": 3691792,
+      "checksum": "PASS",
+      "validation_hash": "PASS"
+    },
+    {
+      "name": "ota_1",
+      "state": "EMPTY"
+    }
+  ],
+  "physical_restore": "NOT_PROVEN",
+  "current_security": "NOT_CHECKED"
+}

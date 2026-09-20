@@ -1,4 +1,5 @@
 #include "lv_adapter_display.h"
+#include <atomic>
 #include "personal_sdk.h"
 #include "esp_app_desc.h"
 
@@ -23,6 +24,11 @@
 #include "application.h"
 #include "assets/lang_config.h"
 #include "assistant_screen/assistant_screen.h"
+#ifdef CONFIG_PAPER_CORE_APP
+// PAPER has no OEM assistant overlay. Keep only this explicit UI predicate;
+// audio drivers and diagnostics remain independent and enabled.
+class PaperAssistantVisibility {public:static constexpr bool IsPttWaveVisible(){return false;}};
+#endif
 #include "audio_codec.h"
 #include "board.h"
 #include "power_policy.h"
@@ -616,6 +622,8 @@ struct EpdFlushCtx {
     int panel_w = 0;
     int panel_h = 0;
     bool has_last = false;
+    std::atomic<bool> paper_presenting{false};
+    bool paper_deferred_dirty=false; // GUI-lock protected.
     uint32_t partial_refresh_count = 0;
     bool defer_boot_paint = true;  // SetupUI 完成前只攒帧不上屏
     bool boot_fb_ready = false;
@@ -891,7 +899,7 @@ static void ArmCoalesceKick(EpdFlushCtx* ctx);
 
 /** BUSY 结束后把 coalesce 的 work_fb 局刷上屏（无新 LVGL flush 时补一刀）。 */
 static void CommitCoalescedFrame(EpdFlushCtx* ctx) {
-    if (ctx == nullptr || !ctx->coalesce_pending || ctx->freeze_updates || ctx->defer_standby_paint) {
+    if (ctx == nullptr || ctx->paper_presenting || !ctx->coalesce_pending || ctx->freeze_updates || ctx->defer_standby_paint) {
         return;
     }
     if (!TryFinishInflightRefresh(ctx)) {
@@ -988,6 +996,7 @@ void BlitA2i1ToPanelFb(uint8_t* dst_fb, int panel_w, int panel_h, const uint8_t*
 
 /** 关机：关机图一次全刷（0xC7，与进/出待机相同）。 */
 esp_err_t EpdShutdownFullFb(EpdFlushCtx* ctx, const uint8_t* curr_fb) {
+    if(ctx&&ctx->paper_presenting)return ESP_ERR_INVALID_STATE;
     if (ctx == nullptr || ctx->panel == nullptr || ctx->last_fb == nullptr || curr_fb == nullptr ||
         ctx->work_fb == nullptr) {
         return ESP_ERR_INVALID_ARG;
@@ -1015,7 +1024,8 @@ esp_err_t EpdLvglDrawBitmap(lv_display_t* disp, esp_lcd_panel_handle_t panel, in
     if (!ctx || !color_map || !ctx->last_fb || !ctx->work_fb) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (ctx->freeze_updates) {
+    if (ctx->freeze_updates || ctx->paper_presenting) {
+        if(ctx->paper_presenting)ctx->paper_deferred_dirty=true;
         if (ctx->disp) {
             lv_display_flush_ready(ctx->disp);
         }
@@ -1209,7 +1219,11 @@ LVAdapterDisplay::LVAdapterDisplay(const esp_lcd_panel_handle_t panel,
                 if (display->notification_label_) {
                     lv_obj_add_flag(display->notification_label_, LV_OBJ_FLAG_HIDDEN);
                 }
-                if (display->status_label_ && !AssistantScreen::IsPttWaveVisible()) {
+                if (display->status_label_
+#ifndef CONFIG_PAPER_CORE_APP
+                    && !AssistantScreen::IsPttWaveVisible()
+#endif
+                ) {
                     lv_obj_remove_flag(display->status_label_, LV_OBJ_FLAG_HIDDEN);
                 }
             },
@@ -1314,13 +1328,15 @@ LVAdapterDisplay::LVAdapterDisplay(const esp_lcd_panel_handle_t panel,
     ESP_ERROR_CHECK(esp_lv_adapter_fs_mount(&fs_cfg, &fs_handle));
 
     // 在内部 RAM 栈的初始化线程预读 NVS，避免首次进首页/设置时在 LVGL(PSRAM 栈)里碰 flash。
-    (void)HomeScreen::LoadCardStyle();
     (void)HapticIsEnabled();
+#ifndef CONFIG_PAPER_CORE_APP
+    (void)HomeScreen::LoadCardStyle();
     BookReaderPrefsEnsureLoaded();
     // 待机壁纸路由：开机即灌 NVS→缓存，勿等 Application::Start 联网后才 classic
     wallpaper::HydrateFromNvsNow();
     // 阅读首页快照：与壁纸同点灌入，首页可点时内存已有最近阅读/总时长
     reader::book_home_snapshot::HydrateFromNvs();
+#endif
 
     if (esp_lv_adapter_lock(-1) == ESP_OK) {
         SetupUI();
@@ -1438,7 +1454,13 @@ void LVAdapterDisplay::RestoreStatusWidgetsLocked() {
         // 无缓存时勿回退「待命」：首页 Idle 应以时钟为准，由 ApplyIdleStatusBar 写入
         const char* body = status_body_cache_[0] != '\0' ? status_body_cache_ : "--:--";
         ApplyStatusTextLocked(body);
-        if (!AssistantScreen::IsPttWaveVisible()) {
+        if (
+#ifdef CONFIG_PAPER_CORE_APP
+            true
+#else
+            !AssistantScreen::IsPttWaveVisible()
+#endif
+        ) {
             lv_obj_remove_flag(status_label_, LV_OBJ_FLAG_HIDDEN);
             if (notification_label_ != nullptr) {
                 lv_obj_add_flag(notification_label_, LV_OBJ_FLAG_HIDDEN);
@@ -1527,20 +1549,28 @@ LVAdapterDisplay::~LVAdapterDisplay() {
 }
 
 void LVAdapterDisplay::SetEmotion(const char* emotion) {
+#ifdef CONFIG_PAPER_CORE_APP
+    (void)emotion;
+#else
     // 非对话页无表情控件，跳过加锁，少打断其它屏局刷。
     if (!AssistantScreen::IsActive()) {
         return;
     }
     DisplayLockGuard lock(this);
     AssistantScreen::SetEmotion(emotion);
+#endif
 }
 
 void LVAdapterDisplay::SetChatMessage(const char* role, const char* content) {
+#ifdef CONFIG_PAPER_CORE_APP
+    (void)role;(void)content;
+#else
     // 只转发；AddMessage 内自行短持锁做 UI。解析/落盘在锁外，避免流式每包堵住翻页。
     if (!AssistantScreen::IsActive()) {
         return;
     }
     AssistantScreen::AddMessage(role, content);
+#endif
 }
 
 void LVAdapterDisplay::SetStatusTitlePrefix(const char* prefix) {
@@ -1555,7 +1585,7 @@ void LVAdapterDisplay::SetStatusTitlePrefix(const char* prefix) {
 void LVAdapterDisplay::BeginStandbyEnterPaint() {
     DisplayLockGuard lock(this);
     auto* ctx = epd_flush_ctx_;
-    if (ctx == nullptr || ctx->panel == nullptr) {
+    if (ctx == nullptr || ctx->panel == nullptr || ctx->paper_presenting) {
         return;
     }
     DrainRefreshIfNeeded(ctx);
@@ -1568,7 +1598,7 @@ void LVAdapterDisplay::BeginStandbyEnterPaint() {
 void LVAdapterDisplay::ParkEpdForStandby() {
     DisplayLockGuard lock(this);
     auto* ctx = epd_flush_ctx_;
-    if (ctx == nullptr || ctx->panel == nullptr || ctx->standby_frozen) {
+    if (ctx == nullptr || ctx->panel == nullptr || ctx->standby_frozen || ctx->paper_presenting) {
         return;
     }
 
@@ -1611,7 +1641,7 @@ void LVAdapterDisplay::ParkEpdForStandby() {
 void LVAdapterDisplay::WakeEpdFromStandby() {
     DisplayLockGuard lock(this);
     auto* ctx = epd_flush_ctx_;
-    if (ctx == nullptr || ctx->panel == nullptr) {
+    if (ctx == nullptr || ctx->panel == nullptr || ctx->paper_presenting) {
         return;
     }
     const bool was_defer = ctx->defer_standby_paint;
@@ -1645,9 +1675,10 @@ bool LVAdapterDisplay::CopyDiagnosticFrame(uint8_t* output,size_t size) const {
     memcpy(output,ctx->last_fb,size);return true;
 }
 
-esp_err_t LVAdapterDisplay::RefreshDiagnostic(bool full) {
+bool LVAdapterDisplay::IsPaperPresenting() const {return epd_flush_ctx_&&epd_flush_ctx_->paper_presenting.load();}
+esp_err_t LVAdapterDisplay::RefreshDiagnostic(bool full, bool yieldGui) {
     auto* ctx = epd_flush_ctx_;
-    if (ctx == nullptr || ctx->freeze_updates || ctx->defer_boot_paint) {
+    if (ctx == nullptr || ctx->paper_presenting || ctx->freeze_updates || ctx->defer_boot_paint) {
         return ESP_ERR_INVALID_STATE;
     }
     if (ctx->refresh_inflight) {
@@ -1656,6 +1687,8 @@ esp_err_t LVAdapterDisplay::RefreshDiagnostic(bool full) {
         ctx->refresh_inflight = false;
         ctx->suppress_lvgl_notify = false;
     }
+    full=full||ctx->force_next_full||ctx->partial_refresh_count>=kPartialsPerFull;
+    ctx->coalesce_pending=false;
     uint8_t* previous=nullptr;
     if (!full && ctx->has_last) {
         previous=static_cast<uint8_t*>(heap_caps_malloc(ctx->fb_size,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT));
@@ -1667,19 +1700,37 @@ esp_err_t LVAdapterDisplay::RefreshDiagnostic(bool full) {
     lv_obj_invalidate(lv_screen_active());
     lv_refr_now(ctx->disp);
     ctx->defer_standby_paint = false;
+    if(previous&&memcmp(previous,ctx->last_fb,ctx->fb_size)==0){heap_caps_free(previous);return ESP_OK;}
     ctx->suppress_lvgl_notify = true;
+    xSemaphoreTake(ctx->done_sem,0);
+    const bool partial = previous != nullptr;
+    const auto waveform = ctx->force_next_full && ctx->force_full_c7 ? SSD1677_EPAPER_REFRESH_STANDBY : SSD1677_EPAPER_REFRESH_FULL;
+    // Consume only requests present at submission; preserve requests arriving
+    // while the GUI lock is released for the physical refresh.
+    ctx->force_next_full=false;
+    ctx->force_full_c7=false;
+    ctx->paper_presenting=true;
+    const int64_t refreshStarted=esp_timer_get_time();
+    if(yieldGui)esp_lv_adapter_unlock();
     const esp_err_t err = previous ? FullScreenPartialTo(ctx,previous,ctx->last_fb,"inkdesk fast") :
-        FullRefreshBothSame(ctx, ctx->last_fb, "sdk diagnostic");
+        FullRefreshBothSame(ctx, ctx->last_fb, "sdk diagnostic", waveform);
+    if(yieldGui)ESP_ERROR_CHECK(esp_lv_adapter_lock(-1));
+    ctx->paper_presenting=false;
+    if(ctx->paper_deferred_dirty){ctx->paper_deferred_dirty=false;lv_obj_invalidate(lv_screen_active());}
+    ESP_LOGI(TAG,"paper refresh kind=%s elapsed_us=%lld result=%s",previous?"fast":"full",(long long)(esp_timer_get_time()-refreshStarted),esp_err_to_name(err));
     if (previous) heap_caps_free(previous);
     ctx->suppress_lvgl_notify = false;
     if (err == ESP_OK) {
         ctx->has_last = true;
-        ctx->partial_refresh_count = 0;
+        ctx->partial_refresh_count = partial?ctx->partial_refresh_count+1:0;
+    } else {
+        ctx->has_last=false;ctx->force_next_full=true;
     }
     return err;
 }
 
 void LVAdapterDisplay::SleepEpdForPowerOff() {
+    if(epd_flush_ctx_&&epd_flush_ctx_->paper_presenting)return;
     if (epd_flush_ctx_ == nullptr || epd_flush_ctx_->panel == nullptr) {
         return;
     }
@@ -1693,9 +1744,17 @@ void LVAdapterDisplay::SleepEpdForPowerOff() {
 }
 
 void LVAdapterDisplay::ShowPoweredOffScreen() {
+    // Power-off is called outside the GUI lock. Let an in-progress PAPER
+    // transaction finish before touching its immutable panel buffers.
+    const int64_t deadline=esp_timer_get_time()+15000000;
+    for(;;){
+        if(esp_lv_adapter_lock(100)==ESP_OK){if(!IsPaperPresenting())break;esp_lv_adapter_unlock();}
+        if(esp_timer_get_time()>=deadline){ESP_LOGE(TAG,"power-off paint skipped: panel transaction timed out");return;}
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    struct UnlockGui {~UnlockGui(){esp_lv_adapter_unlock();}} unlockGui;
     // 若待机曾冻结 flush，先恢复再画关机图
     WakeEpdFromStandby();
-    DisplayLockGuard lock(this);
     BindStatusWidgets(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 
     // 直接往 EPD 帧缓冲画 A2I1，再关机全刷（0xC7）。
@@ -1824,6 +1883,7 @@ void LVAdapterDisplay::ApplyStatusTextLocked(const char* status) {
 }
 
 void LVAdapterDisplay::SetStatus(const char* status) {
+#ifndef CONFIG_PAPER_CORE_APP
     // 百问页：屏蔽待命/聆听/回答，保留连接网络/登录等系统提示（跟 DeviceState）
     if (AssistantScreen::IsActive()) {
         const DeviceState state = Application::GetInstance().GetDeviceState();
@@ -1832,6 +1892,7 @@ void LVAdapterDisplay::SetStatus(const char* status) {
             return;
         }
     }
+#endif
     DisplayLockGuard lock(this);
     if (status_label_ == nullptr) {
         return;
@@ -1869,6 +1930,11 @@ void LVAdapterDisplay::ShowNotification(const char* notification, int duration_m
 }
 
 void LVAdapterDisplay::UpdateStatusBar(bool update_all) {
+#ifdef CONFIG_PAPER_CORE_APP
+    // PAPER owns its complete frame; OEM widget updates would retain the full
+    // assistant/cloud application and cannot address PAPER's raster widgets.
+    (void)update_all;
+#else
     // 全屏页（老化/关机图等）已 ClearStatusBindings：勿再抢 DisplayLock，减轻与 LVGL 竞态
     if (mute_label_ == nullptr && network_label_ == nullptr && battery_label_ == nullptr &&
         status_label_ == nullptr && notification_label_ == nullptr && battery_pct_label_ == nullptr) {
@@ -2008,6 +2074,7 @@ void LVAdapterDisplay::UpdateStatusBar(bool update_all) {
     if (play_low_battery) {
         app.PlaySound(Lang::Sounds::OGG_LOW_BATTERY);
     }
+#endif
 }
 
 void LVAdapterDisplay::SetPowerSaveMode(bool on) {
@@ -2035,3 +2102,9 @@ bool LVAdapterDisplay::Lock(int timeout_ms) {
 void LVAdapterDisplay::Unlock() {
     esp_lv_adapter_unlock();
 }
+
+#if !CONFIG_PAPER_CORE_APP
+#include "ui/fontbench/gray/adapter.inc"
+#else
+#include "paper_shell/gray/display_adapter.inc"
+#endif

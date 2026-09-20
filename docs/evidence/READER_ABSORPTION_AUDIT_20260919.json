@@ -1,0 +1,337 @@
+{
+  "date": "2026-09-19",
+  "scope": "Read-only source review and planning. No device access, build, firmware or production-code edits.",
+  "local": {
+    "root": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/outputs/metalio-sdk-1.0",
+    "branch": "main",
+    "head": "7ce967e28188ce28e9c4c0a3b2ae1b7c9e7896ea",
+    "dirty": true,
+    "files": [
+      {
+        "sha256": "dafedb56d039d6b3ed2bf340f79d083c3e413dd48acb8d19bcbc1134c68de7ad",
+        "path": "CMakeLists.txt"
+      },
+      {
+        "sha256": "fb53d3ab0fd87708e31d620335b14e7860ed96c43b77c936f03d2121c59bdb50",
+        "path": "sdkconfig"
+      },
+      {
+        "sha256": "c560165e712e3b2a0c3e076a8c26686d9fa9a8b4100021d7d39430c632bdeae3",
+        "path": "main/paper_shell/product_sources.cmake"
+      },
+      {
+        "sha256": "10d4a2aa02132f2635c3c2218d8773b4ff2f6f0b8f68a486634539a3f3b24e3e",
+        "path": "main/paper_shell/adapters/crossmux_source.cc"
+      },
+      {
+        "sha256": "3ff2f183103b744ae880349c2601739b8c19bcb979bc608371aed334c1d2e5ac",
+        "path": "main/paper_shell/inkdesk_bridge.cc"
+      },
+      {
+        "sha256": "8d622ddedeedbcc5b68ac01dfc3c1273ad498e3323c7c89902409389c70b0644",
+        "path": "main/display/lv_adapter_display.cc"
+      },
+      {
+        "sha256": "93c38e0b0c1c8fb6eec22e181772ef339490a0aeecabc677bf80d386d8fcc88e",
+        "path": "main/paper_shell/gray/display_adapter.inc"
+      },
+      {
+        "sha256": "2cd92741c9a1ec35feed319ab83d2517ce12808696ad44c7288dc62a0b3648f4",
+        "path": "main/boards/metalio-e-ink-4/esp_lcd_panel_ssd1677.c"
+      },
+      {
+        "sha256": "1a98344e05703128dfac2e1e30ff9ad7669a8e0334692198b68c55231347ce61",
+        "path": "components/paper_core/include/paper/common.hpp"
+      },
+      {
+        "sha256": "65b0a55007d725ff06684c565c8cb36abefa89d651a05b86fe6d4d58ce46943d",
+        "path": "components/paper_core/include/paper/document.hpp"
+      },
+      {
+        "sha256": "fdde69529e4c94fd93d5f4844e035cefcc989e0543eb53263e6c33f09391d632",
+        "path": "components/paper_core/include/paper/text.hpp"
+      },
+      {
+        "sha256": "663fe04c975fb2a16320dfff8e3c23ce661b9233746252bd0635a387c4442d1c",
+        "path": "components/paper_core/src/runtime.cpp"
+      },
+      {
+        "sha256": "b89a22af6f058e2d027e5dac835e19638b50632a56d75d060c26d5b44c76952d",
+        "path": "components/paper_core/src/document.cpp"
+      },
+      {
+        "sha256": "8388af4a5119b2cfde647778f6930506119f749ca6507bdabc500240255de124",
+        "path": "components/paper_core/src/reader.cpp"
+      },
+      {
+        "sha256": "14cc65b3d677b5e5c494b27a77e50df3f6ee5221b96e3a2c8595d26d8b26061e",
+        "path": "components/paper_core/src/text.cpp"
+      },
+      {
+        "sha256": "b79d9890ac0e92f2027c7778e8b616aa0ee8cd5cd1143f2ac3549e2e544a5043",
+        "path": "components/paper_core/src/font_catalog.cpp"
+      },
+      {
+        "sha256": "d959acc437300a06ea7c277bae7533fde2139bda55dc5977372dbe8e53cab9e9",
+        "path": "components/paper_core/src/common.cpp"
+      },
+      {
+        "sha256": "a1926224aa2223622ce2ea9cacfae9718ac2a662d0e1a5bab7a241dd85cf7742",
+        "path": "components/paper_core/src/ui_pages.cpp"
+      },
+      {
+        "sha256": "472ad973afe63ca41d751ea7f5b69e9d8d5663b25c46bfad0c92afa11b515dee",
+        "path": "docs/PAPER_PERFORMANCE_RESULTS_20260919.md"
+      },
+      {
+        "sha256": "ee46c271db383a11d3b3920c3e4d1750a9671b7d91e98127944c9d5cc9532507",
+        "path": "artifacts/paper-perf2-20260919/device-performance.jsonl"
+      },
+      {
+        "sha256": "e51c4c72c002e958dda53fb33ee873aaed29d2266aadc3972a5ce43f6be09732",
+        "path": "artifacts/paper-perf2-20260919/update-package/update.json"
+      }
+    ]
+  },
+  "sources": [
+    {
+      "project": "freeink",
+      "revision": "094976e1d47ad7120cf461fec5f6b737eaabf13f",
+      "path": "libs/display/FreeInkDisplay/src/driver/Ssd1677Driver.cpp",
+      "sha256": "573f0819960f75efe4756c0520578fb9bfcea9c6922e5818d32f751a5866c569",
+      "url": "https://github.com/0x1abin/freeink-sdk/blob/094976e1d47ad7120cf461fec5f6b737eaabf13f/libs/display/FreeInkDisplay/src/driver/Ssd1677Driver.cpp"
+    },
+    {
+      "project": "freeink",
+      "revision": "094976e1d47ad7120cf461fec5f6b737eaabf13f",
+      "path": "libs/display/FreeInkDisplay/src/driver/Ssd1677Driver.h",
+      "sha256": "5aac73ed4809d2fb431cd369587da8214586110a079a09f0e26fcf3c307172a3",
+      "url": "https://github.com/0x1abin/freeink-sdk/blob/094976e1d47ad7120cf461fec5f6b737eaabf13f/libs/display/FreeInkDisplay/src/driver/Ssd1677Driver.h"
+    },
+    {
+      "project": "freeink",
+      "revision": "094976e1d47ad7120cf461fec5f6b737eaabf13f",
+      "path": "libs/hardware/BoardConfig/include/MetalioEink4Board.h",
+      "sha256": "7a52ae1a359f8c999b2ecd49f42a1db4263c309b21a0f732785aa78e462f19da",
+      "url": "https://github.com/0x1abin/freeink-sdk/blob/094976e1d47ad7120cf461fec5f6b737eaabf13f/libs/hardware/BoardConfig/include/MetalioEink4Board.h"
+    },
+    {
+      "project": "freeink",
+      "revision": "094976e1d47ad7120cf461fec5f6b737eaabf13f",
+      "path": "LICENSE",
+      "sha256": "17dea5079d9905fbbc8323cde7bfffd0f24185949c43a5daad5177022b796588",
+      "url": "https://github.com/0x1abin/freeink-sdk/blob/094976e1d47ad7120cf461fec5f6b737eaabf13f/LICENSE"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "src/activities/reader/EpubReaderActivity.cpp",
+      "sha256": "99d0e3a67771961639a5d6b544e5b451fa678519696f6c8e41b09f0caece8611",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/src/activities/reader/EpubReaderActivity.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/Section.cpp",
+      "sha256": "f78eacf97f7485630c29b34e5a1ce321b4f96fae2778db42e3ad7227446ea15b",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/Section.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/ParsedText.cpp",
+      "sha256": "7a905f074a0983ca5f298c8e063885f42fdc845eff7b3c8701aed61b540841d2",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/ParsedText.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/Section.h",
+      "sha256": "f9f847fa02977ddda31a6999031b5c34faaac8981431816ec0d695878bc0ea3f",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/Section.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/converters/ImageToFramebufferDecoder.cpp",
+      "sha256": "982172144bf235e585e5d379312b6c2747e661d281ffbb344c7a8fdb9f68ad1d",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/converters/ImageToFramebufferDecoder.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/converters/ImageDecoderFactory.cpp",
+      "sha256": "5e57b0225d135eefc225fa3ea1074627726e8d26278fcf1acd8182a297f840a4",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/converters/ImageDecoderFactory.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/ReaderRenderSpec.h",
+      "sha256": "eaa2a4c28f2f5a46ca9e81c9d0d7288213a53b0e948743aa4892dd14a832407b",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/ReaderRenderSpec.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub.cpp",
+      "sha256": "3e85c867f052ba8336ce8ffdebe83bcaae206e2c08f0618a68da835a1d9b8872",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/Page.cpp",
+      "sha256": "1adeb4c5115d0bb862344b710cd1a9d7eefc20f2f83937176589e42120bae1be",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/Page.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/GfxRenderer/GfxRenderer.h",
+      "sha256": "d192fa5f55c5e0a41637672cff0dd22b67cb510774a2f904c9824d04485c9556",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/GfxRenderer/GfxRenderer.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/GfxRenderer/FontCacheManager.cpp",
+      "sha256": "a652bdedfcaf3d0e34587a35628856c73323f7a1f6ad3999ff25cdb81999a443",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/GfxRenderer/FontCacheManager.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "platformio.ini",
+      "sha256": "d67ba59b8e281f4dea446beac1c752b9b59bc58b50e723f171a46f0cbd752b1a",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/platformio.ini"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub.h",
+      "sha256": "357fc1751345454259793195891fa070a922a46f814c69b01c477d503dab43eb",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/css/CssStyle.h",
+      "sha256": "6b49a8dba7013b0506c101fb0cba0a0523075b94011319939dac3c720e82aaa1",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/css/CssStyle.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/css/CssParser.cpp",
+      "sha256": "1a83398b750f034a44c426aa0e9b46dcb26f033408c36bb7f787c3c922ff29a1",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/css/CssParser.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/ParsedText.h",
+      "sha256": "4a033cbf546d01a397ce351c1b9650268870f76907643c12e2e9db8ab266a43f",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/ParsedText.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "LICENSE",
+      "sha256": "d4d118fb32e0f5969d9a6f9d64cc35d56c07ce5c93d275af20919eaffcd251c4",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/LICENSE"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/Page.h",
+      "sha256": "102cad60791b507608f1e37a6cb8a09774c8aa473a4ad0e9873305c3be1c58d9",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/Page.h"
+    },
+    {
+      "project": "m5readpaper",
+      "revision": "2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b",
+      "path": "LICENSE",
+      "sha256": "67b5d64434d26e66a61d11d2fad0a179167fddd03f7cefae43230d4515925a47",
+      "url": "https://github.com/shinemoon/M5ReadPaper/blob/2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b/LICENSE"
+    },
+    {
+      "project": "m5readpaper",
+      "revision": "2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b",
+      "path": "README.md",
+      "sha256": "73ef9e8a84dd47135168b8a95bf36d376f57469b469b57af4746cb77067f1e45",
+      "url": "https://github.com/shinemoon/M5ReadPaper/blob/2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b/README.md"
+    },
+    {
+      "project": "m5readpaper",
+      "revision": "2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b",
+      "path": "src/text/font_buffer.cpp",
+      "sha256": "5cc2a9ea20b6273e2e4019e0b3e12acae5689c5a57ef294bcbc22526abccd1d1",
+      "url": "https://github.com/shinemoon/M5ReadPaper/blob/2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b/src/text/font_buffer.cpp"
+    },
+    {
+      "project": "m5readpaper",
+      "revision": "2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b",
+      "path": "src/text/font_buffer.h",
+      "sha256": "828029cc2e128c1d7970976411cbb5f7069b11b910b8534eba064461e148f791",
+      "url": "https://github.com/shinemoon/M5ReadPaper/blob/2380ca1d3ffd8ea530493a4225d8c9b6ed60c24b/src/text/font_buffer.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/parsers/ChapterHtmlSlimParser.cpp",
+      "sha256": "86c8a2a487d88a126e8a71efc4a1f09c1d6fcfec60ebe60c0b0969a2c271fc0f",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/parsers/ChapterHtmlSlimParser.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/parsers/ChapterHtmlSlimParser.h",
+      "sha256": "4286bd76127f879b69506753e335df637aabb7ac7f835343f2680df89b34ac03",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/parsers/ChapterHtmlSlimParser.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/blocks/Block.h",
+      "sha256": "886b5ded6ee2a3ca7dabf027a1622404f7909cf0e9ab16084b0cd3629b7ee388",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/blocks/Block.h"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/blocks/ImageBlock.cpp",
+      "sha256": "5ae1971d833555b5404d3193ae52904da2bcbb3f1a85d596e11dec52a8f7cd07",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/blocks/ImageBlock.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "lib/Epub/Epub/blocks/TextBlock.cpp",
+      "sha256": "895eb425cc41783f3674b3e4d141940e7292ebfec1d5e0e5c5387b85363589df",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/lib/Epub/Epub/blocks/TextBlock.cpp"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "docs/engineering/metalio-eink4.md",
+      "sha256": "17b7472288ae205886b2df7617075c661e6c756de680a7cfd2c2ae3b028a669c",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/docs/engineering/metalio-eink4.md"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "docs/engineering/cache-management.md",
+      "sha256": "96f333aa60699900aef45420a6b16d0028a97d1e032a77aa104724690512c6be",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/docs/engineering/cache-management.md"
+    },
+    {
+      "project": "crossmux",
+      "revision": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+      "path": "docs/engineering/sd-card-font-cache.md",
+      "sha256": "43ee728c40cf28ce525b549e02fc541c9020b61552d84f6318169ce2f8880baf",
+      "url": "https://github.com/0x1abin/crossmux/blob/7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1/docs/engineering/sd-card-font-cache.md"
+    }
+  ],
+  "note": "Hashes identify fetched source files; selected interfaces and relevant implementations were read, not an audit of every line in every dependency. FreeInk revision resolved from CrossMux gitlink. Context7 had no matching library."
+}

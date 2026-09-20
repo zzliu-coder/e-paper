@@ -8,9 +8,10 @@ import json
 import os
 from pathlib import Path
 import socket
+import sys
 import time
 
-from metalio import Client, Journal, choose_port, open_serial, validate_scene
+from metalio import Client, Journal, DeviceRebooted, choose_port, open_serial, validate_scene
 from hardware_acceptance import wait_until_ready
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,8 +34,9 @@ def receive_line(connection):
 
 
 class Session:
-    def __init__(self, port, journal):
+    def __init__(self, port, journal, atomic_lines=False):
         self.port, self.journal = port, journal
+        self.atomic_lines=atomic_lines
         self.link = self.client = None
         self.hello = None
         self.export_dir = ROOT / "sessions/device-selftest"
@@ -47,14 +49,25 @@ class Session:
 
     def connect(self):
         if self.client is None:
-            self.link = open_serial(choose_port(self.port))
+            if self.link is None:
+                self.link = open_serial(choose_port(self.port),atomic_lines=True) if self.atomic_lines else open_serial(choose_port(self.port))
             try:
                 self.client = Client(self.link, self.journal, expected_device="1020ba6e0be0")
                 self.hello = self.client.hello()
                 wait_until_ready(self.client)
+            except DeviceRebooted:
+                self.invalidate_protocol()
+                raise
             except Exception:
                 self.close()
                 raise
+
+    def invalidate_protocol(self):
+        # An ESP32-S3 USB-JTAG transport can stay open through esp_restart.
+        # Closing/reopening it can reset a pending-verify OTA image a second
+        # time, triggering rollback before the application accepts its boot.
+        self.client = None
+        self.hello = None
 
     def execute(self, request):
         self.connect()
@@ -119,7 +132,7 @@ def serve(args):
     if os.path.lexists(args.socket):
         raise RuntimeError(f"Socket already exists: {args.socket}")
     journal = Journal(Path(args.log), label="usb_service")
-    session = Session(args.port, journal)
+    session = Session(args.port, journal,args.atomic_lines)
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     server.bind(args.socket)
     os.chmod(args.socket, 0o600)
@@ -144,6 +157,9 @@ def serve(args):
                             except (ValueError, RuntimeError, OSError) as exc:
                                 journal.record("log_export_error", {"error": str(exc)})
                             last_ping = time.monotonic()
+                    except DeviceRebooted as exc:
+                        journal.record("reboot_rehandshake", {"error": str(exc), "transport_preserved": True})
+                        session.invalidate_protocol()
                     except (ConnectionError, OSError, TimeoutError, ValueError, RuntimeError) as exc:
                         journal.record("disconnected", {"error": str(exc)})
                         session.close()
@@ -157,6 +173,9 @@ def serve(args):
                         running = False
                     else:
                         reply = {"ok": True, "result": session.execute(request)}
+                except DeviceRebooted as exc:
+                    session.invalidate_protocol()
+                    reply = {"ok": False, "error": str(exc), "outcome": "unconfirmed; transport preserved; command not retried"}
                 except (ConnectionError, OSError, TimeoutError) as exc:
                     session.close()
                     reply = {"ok": False, "error": str(exc), "outcome": "unconfirmed; command not retried"}
@@ -179,6 +198,10 @@ def main():
     sub = parser.add_subparsers(dest="action", required=True)
     server = sub.add_parser("serve")
     server.add_argument("--port")
+    lines=server.add_mutually_exclusive_group()
+    lines.add_argument("--atomic-lines",dest="atomic_lines",action="store_true",help="macOS: deassert DTR/RTS together; preserve a running application's boot")
+    lines.add_argument("--legacy-lines",dest="atomic_lines",action="store_false",help="Explicit legacy serial opening; may reset the target")
+    server.set_defaults(atomic_lines=sys.platform=="darwin")
     server.add_argument("--log", default=str(ROOT / "sessions/service.jsonl"))
     client = sub.add_parser("call")
     client.add_argument("command")

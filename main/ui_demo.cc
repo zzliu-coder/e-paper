@@ -93,7 +93,7 @@ void Model::Draw(Frame& f) const {
     top(f,"返回 / 设置");panel(f,{20,64,440,206},true);text(f,36,82,300,"设置 / 交互演示",25,false);
     dots(f,36,129,"82",10,false);text(f,176,168,64,"%",28,false);
     text(f,36,222,402,"电量为示例 · 本页不改硬件参数",18,false);
-    paper::SettingRow(f,{20,282,214,142},"字体实验室","四种黑体方案",Lab);
+    paper::SettingRow(f,{20,282,214,142},"字体实验室","字体与字号",Lab);
     paper::SettingRow(f,{246,282,214,142},"网络与连接","功能说明",Detail,0);
     paper::SettingRow(f,{20,436,214,142},"校准与组件","文字 / 线框 / 灰",Gallery);
     paper::SettingRow(f,{246,436,214,142},"电源与休眠","功能说明",Detail,2);

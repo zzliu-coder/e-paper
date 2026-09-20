@@ -1,0 +1,502 @@
+{
+  "source": "https://github.com/0x1abin/crossmux",
+  "commit": "7dcd8b19031c9277376c7e0f8cacda4d7b5a43a1",
+  "files": [
+    {
+      "path": "LICENSE",
+      "bytes": 1152,
+      "sha256": "d4d118fb32e0f5969d9a6f9d64cc35d56c07ce5c93d275af20919eaffcd251c4",
+      "upstream_sha256": "d4d118fb32e0f5969d9a6f9d64cc35d56c07ce5c93d275af20919eaffcd251c4",
+      "modified": false
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 1521,
+      "sha256": "60fa017ddac836e47122e5f8fd319cc41cc6e9e3b5bbb53ce48e9b4d85c319f8",
+      "local_adapter_or_notice": true
+    },
+    {
+      "path": "lib/Epub/Epub/FootnoteEntry.h",
+      "bytes": 2946,
+      "sha256": "58a7d8de4b47794e96389fdcc3414fdaf7e4683629f50f48cb46be322936ea4d",
+      "upstream_sha256": "58a7d8de4b47794e96389fdcc3414fdaf7e4683629f50f48cb46be322936ea4d",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/Page.cpp",
+      "bytes": 12314,
+      "sha256": "1adeb4c5115d0bb862344b710cd1a9d7eefc20f2f83937176589e42120bae1be",
+      "upstream_sha256": "1adeb4c5115d0bb862344b710cd1a9d7eefc20f2f83937176589e42120bae1be",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/Page.h",
+      "bytes": 5635,
+      "sha256": "102cad60791b507608f1e37a6cb8a09774c8aa473a4ad0e9873305c3be1c58d9",
+      "upstream_sha256": "102cad60791b507608f1e37a6cb8a09774c8aa473a4ad0e9873305c3be1c58d9",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/PageLink.h",
+      "bytes": 3422,
+      "sha256": "83d92a67972a52f110829578e4a84750e9d342f7f68a8b7bfe905bdd7b032c5c",
+      "upstream_sha256": "83d92a67972a52f110829578e4a84750e9d342f7f68a8b7bfe905bdd7b032c5c",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/ParsedText.cpp",
+      "bytes": 72790,
+      "sha256": "7a905f074a0983ca5f298c8e063885f42fdc845eff7b3c8701aed61b540841d2",
+      "upstream_sha256": "7a905f074a0983ca5f298c8e063885f42fdc845eff7b3c8701aed61b540841d2",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/ParsedText.h",
+      "bytes": 6606,
+      "sha256": "4a033cbf546d01a397ce351c1b9650268870f76907643c12e2e9db8ab266a43f",
+      "upstream_sha256": "4a033cbf546d01a397ce351c1b9650268870f76907643c12e2e9db8ab266a43f",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/ReaderRenderSpec.h",
+      "bytes": 1053,
+      "sha256": "eaa2a4c28f2f5a46ca9e81c9d0d7288213a53b0e948743aa4892dd14a832407b",
+      "upstream_sha256": "eaa2a4c28f2f5a46ca9e81c9d0d7288213a53b0e948743aa4892dd14a832407b",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/Section.cpp",
+      "bytes": 47588,
+      "sha256": "46a73e839ad06d19457c6f0c0029193c61463235f5b44b0643435bea83c03f5d",
+      "upstream_sha256": "f78eacf97f7485630c29b34e5a1ce321b4f96fae2778db42e3ad7227446ea15b",
+      "modified": true
+    },
+    {
+      "path": "lib/Epub/Epub/Section.h",
+      "bytes": 8826,
+      "sha256": "f9f847fa02977ddda31a6999031b5c34faaac8981431816ec0d695878bc0ea3f",
+      "upstream_sha256": "f9f847fa02977ddda31a6999031b5c34faaac8981431816ec0d695878bc0ea3f",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/TokenBoundary.h",
+      "bytes": 1430,
+      "sha256": "018a8a3812570e67f18d67bad4a761ddb64101a22cbab8195145eae187619dca",
+      "upstream_sha256": "018a8a3812570e67f18d67bad4a761ddb64101a22cbab8195145eae187619dca",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/VisibleTextUtils.h",
+      "bytes": 680,
+      "sha256": "a4a7f06c155e194dbf5157ef1ecc79aaf12ac1e10377abccabc55441bc1e9675",
+      "upstream_sha256": "a4a7f06c155e194dbf5157ef1ecc79aaf12ac1e10377abccabc55441bc1e9675",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/blocks/Block.h",
+      "bytes": 303,
+      "sha256": "886b5ded6ee2a3ca7dabf027a1622404f7909cf0e9ab16084b0cd3629b7ee388",
+      "upstream_sha256": "886b5ded6ee2a3ca7dabf027a1622404f7909cf0e9ab16084b0cd3629b7ee388",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/blocks/BlockStyle.h",
+      "bytes": 7257,
+      "sha256": "540bc48a995a6ed7837e90e1320cc0e4db69558788082591fcf43afffc34f79c",
+      "upstream_sha256": "540bc48a995a6ed7837e90e1320cc0e4db69558788082591fcf43afffc34f79c",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/blocks/ImageBlock.h",
+      "bytes": 2454,
+      "sha256": "59d73447e0c5081f36566e3706ec308d04031c755676ad6e36a88e0e3109b456",
+      "upstream_sha256": "59d73447e0c5081f36566e3706ec308d04031c755676ad6e36a88e0e3109b456",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/blocks/TextBlock.cpp",
+      "bytes": 17958,
+      "sha256": "895eb425cc41783f3674b3e4d141940e7292ebfec1d5e0e5c5387b85363589df",
+      "upstream_sha256": "895eb425cc41783f3674b3e4d141940e7292ebfec1d5e0e5c5387b85363589df",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/blocks/TextBlock.h",
+      "bytes": 5446,
+      "sha256": "a976ee74f1f3727c82ef2cb7f33297a17c50e902998471b9063e4019e3753908",
+      "upstream_sha256": "a976ee74f1f3727c82ef2cb7f33297a17c50e902998471b9063e4019e3753908",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/converters/ImageDimsProbe.cpp",
+      "bytes": 4593,
+      "sha256": "30ea6c4dea06c2b27aa7c319589314cd5c2093433fb4ce489e2b9efd213c8f9f",
+      "upstream_sha256": "30ea6c4dea06c2b27aa7c319589314cd5c2093433fb4ce489e2b9efd213c8f9f",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/converters/ImageDimsProbe.h",
+      "bytes": 3159,
+      "sha256": "69ee3973813184aca95cd42cc9a74ba7b0a2e94e393c0f39ae8f461d27ab3ca2",
+      "upstream_sha256": "69ee3973813184aca95cd42cc9a74ba7b0a2e94e393c0f39ae8f461d27ab3ca2",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/css/CssParser.cpp",
+      "bytes": 42525,
+      "sha256": "34569d80877bbb57391007bb8f3ffad1004081ba4796d624b878a561890dcae4",
+      "upstream_sha256": "1a83398b750f034a44c426aa0e9b46dcb26f033408c36bb7f787c3c922ff29a1",
+      "modified": true
+    },
+    {
+      "path": "lib/Epub/Epub/css/CssParser.h",
+      "bytes": 6202,
+      "sha256": "30596f3090ea7acea7d55c70ab068a698b9484105eab2c0b0f988e26fdb9301c",
+      "upstream_sha256": "30596f3090ea7acea7d55c70ab068a698b9484105eab2c0b0f988e26fdb9301c",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/css/CssStyle.h",
+      "bytes": 10367,
+      "sha256": "6b49a8dba7013b0506c101fb0cba0a0523075b94011319939dac3c720e82aaa1",
+      "upstream_sha256": "6b49a8dba7013b0506c101fb0cba0a0523075b94011319939dac3c720e82aaa1",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/htmlEntities.cpp",
+      "bytes": 7823,
+      "sha256": "be4b2e154d28765933e1d599ef6f9b153a92b058068836639a2e4d2118753d2b",
+      "upstream_sha256": "be4b2e154d28765933e1d599ef6f9b153a92b058068836639a2e4d2118753d2b",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/htmlEntities.h",
+      "bytes": 370,
+      "sha256": "189fc31cd1969ce90c0f60b2d166a7bcbf07d8d011c29be54f78891125ca327a",
+      "upstream_sha256": "189fc31cd1969ce90c0f60b2d166a7bcbf07d8d011c29be54f78891125ca327a",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/HyphenationCommon.cpp",
+      "bytes": 13321,
+      "sha256": "d6cc946ba1bd3ee471c64ec504e7033d45c73dd1b7b792da96e59fbfad8cd898",
+      "upstream_sha256": "d6cc946ba1bd3ee471c64ec504e7033d45c73dd1b7b792da96e59fbfad8cd898",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/HyphenationCommon.h",
+      "bytes": 646,
+      "sha256": "69c2d65f82d377735d45f0aad6d94ed65cb84eef242bce2d60545821479627e6",
+      "upstream_sha256": "69c2d65f82d377735d45f0aad6d94ed65cb84eef242bce2d60545821479627e6",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/Hyphenator.cpp",
+      "bytes": 11653,
+      "sha256": "2ea69bd080b144e714f411412c5f8870bc91eea841529f2ad69f20d68ba27245",
+      "upstream_sha256": "2ea69bd080b144e714f411412c5f8870bc91eea841529f2ad69f20d68ba27245",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/Hyphenator.h",
+      "bytes": 2067,
+      "sha256": "6e31225aef1b9636eced5747d78c6bcfa2db46045b407dae5f62d33a9ac8a9c9",
+      "upstream_sha256": "6e31225aef1b9636eced5747d78c6bcfa2db46045b407dae5f62d33a9ac8a9c9",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/LanguageHyphenator.h",
+      "bytes": 895,
+      "sha256": "974802148228ab079e4f40453ef84b6a98a4c2adeaddabed66b9817d91c5c462",
+      "upstream_sha256": "974802148228ab079e4f40453ef84b6a98a4c2adeaddabed66b9817d91c5c462",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/LanguageRegistry.cpp",
+      "bytes": 421,
+      "sha256": "48efdd7d568d98ed17cf3d3176e1ce6611b58087b334b876fd8e236029aea016",
+      "upstream_sha256": "90f33b017482db1554727982424c2cccda56c400f3ff10cb742616923599052f",
+      "modified": true
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/LanguageRegistry.h",
+      "bytes": 688,
+      "sha256": "f672b3fd8179d3725089a59610590520d6e55862b77c6aff5cae383d416a8a06",
+      "upstream_sha256": "f672b3fd8179d3725089a59610590520d6e55862b77c6aff5cae383d416a8a06",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/LiangHyphenation.cpp",
+      "bytes": 16071,
+      "sha256": "d373cbc32c7eb34c0f4c3bbf2432227f23ff1a3c9a24484cc2d7d57799f21e8a",
+      "upstream_sha256": "d373cbc32c7eb34c0f4c3bbf2432227f23ff1a3c9a24484cc2d7d57799f21e8a",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/LiangHyphenation.h",
+      "bytes": 2025,
+      "sha256": "1d0b6bafe975cd53683bf11355ce9b692ff48a0a68789626ad54ff50db8ad328",
+      "upstream_sha256": "1d0b6bafe975cd53683bf11355ce9b692ff48a0a68789626ad54ff50db8ad328",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/SerializedHyphenationTrie.h",
+      "bytes": 253,
+      "sha256": "982294e6d3977cac1f46b694c44873c0dadd89725d718ecb9200e22fbfb398c0",
+      "upstream_sha256": "982294e6d3977cac1f46b694c44873c0dadd89725d718ecb9200e22fbfb398c0",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/hyphenation/generated/hyph-en.trie.h",
+      "bytes": 168745,
+      "sha256": "ee835a9811710ce14b32155ee09f1773aaa2c0d68601dfdb5bf0d005fd985d12",
+      "upstream_sha256": "ee835a9811710ce14b32155ee09f1773aaa2c0d68601dfdb5bf0d005fd985d12",
+      "modified": false
+    },
+    {
+      "path": "lib/Epub/Epub/parsers/ChapterHtmlSlimParser.cpp",
+      "bytes": 97639,
+      "sha256": "65e4050b1952fcdf2c2c08d0f44a0ddc0862fcfdc86c231869c8e9052b395a40",
+      "upstream_sha256": "86c8a2a487d88a126e8a71efc4a1f09c1d6fcfec60ebe60c0b0969a2c271fc0f",
+      "modified": true
+    },
+    {
+      "path": "lib/Epub/Epub/parsers/ChapterHtmlSlimParser.h",
+      "bytes": 10104,
+      "sha256": "cc8b64605da7052b69f927eba8ea5aee40aef60110b2d208159239bf18971d0a",
+      "upstream_sha256": "4286bd76127f879b69506753e335df637aabb7ac7f835343f2680df89b34ac03",
+      "modified": true
+    },
+    {
+      "path": "lib/Memory/Memory.h",
+      "bytes": 4536,
+      "sha256": "0c4403206077e3246ab3ef5790244c25fcbf76a9ab88844eb1a4490c169322d2",
+      "upstream_sha256": "0c4403206077e3246ab3ef5790244c25fcbf76a9ab88844eb1a4490c169322d2",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/BidiUtils.cpp",
+      "bytes": 9946,
+      "sha256": "94a67832496fbaaf794ae1740a4a3cf24c314afea02d2daba61fdbd85d2bc6fe",
+      "upstream_sha256": "94a67832496fbaaf794ae1740a4a3cf24c314afea02d2daba61fdbd85d2bc6fe",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/BidiUtils.h",
+      "bytes": 1216,
+      "sha256": "d31ef1ddb4b28f70312675dfff35f95d11ce9622475dd8548f66263bd5acc3d1",
+      "upstream_sha256": "d31ef1ddb4b28f70312675dfff35f95d11ce9622475dd8548f66263bd5acc3d1",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/bidi_pairs.t",
+      "bytes": 1465,
+      "sha256": "c9075250601bb83e9bef1961b6fcfbfd3021338c017d17d5d0bd79aabdde189a",
+      "upstream_sha256": "c9075250601bb83e9bef1961b6fcfbfd3021338c017d17d5d0bd79aabdde189a",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/bidiclasses.t",
+      "bytes": 7708,
+      "sha256": "1c332fe0078a325d8416b1e8daa35ada67145b047aa4a3de4759f1dd9d035887",
+      "upstream_sha256": "1c332fe0078a325d8416b1e8daa35ada67145b047aa4a3de4759f1dd9d035887",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/minibidi.c",
+      "bytes": 34672,
+      "sha256": "0e1bccfde17554f535f538b3317b0098864647c3bb3647d9c22546d83e876f48",
+      "upstream_sha256": "0e1bccfde17554f535f538b3317b0098864647c3bb3647d9c22546d83e876f48",
+      "modified": false
+    },
+    {
+      "path": "lib/MiniBidi/minibidi.h",
+      "bytes": 6591,
+      "sha256": "266f82907f3050d341cd98ec925d15f988ea36890768606ddef71f0276b8f487",
+      "upstream_sha256": "266f82907f3050d341cd98ec925d15f988ea36890768606ddef71f0276b8f487",
+      "modified": false
+    },
+    {
+      "path": "lib/Serialization/Serialization.h",
+      "bytes": 2229,
+      "sha256": "0b181e520064260cdf1ba5593f021e541e98325ceb4eb60a6d1511711934f209",
+      "upstream_sha256": "8cdb46e91103e8a4a85c41b76d2c2e06b3c7f037a150d7077ac4d72580ef9135",
+      "modified": true
+    },
+    {
+      "path": "lib/Utf8/Utf8.cpp",
+      "bytes": 5457,
+      "sha256": "fef3f7f8cb9d5b87f8905386dce719098152bdd8eea64f64a66a8018b330a771",
+      "upstream_sha256": "fef3f7f8cb9d5b87f8905386dce719098152bdd8eea64f64a66a8018b330a771",
+      "modified": false
+    },
+    {
+      "path": "lib/Utf8/Utf8.h",
+      "bytes": 4632,
+      "sha256": "e7ae2d76d5d95983ef96512bc8f16fa850af6915bfaf146f0da8f865dbf2e4c0",
+      "upstream_sha256": "e7ae2d76d5d95983ef96512bc8f16fa850af6915bfaf146f0da8f865dbf2e4c0",
+      "modified": false
+    },
+    {
+      "path": "lib/Utf8/Utf8ComposeTable.h",
+      "bytes": 23501,
+      "sha256": "dc57c6fd1c5c168376ad1f7e071710b4a0e23603d527dc405219daef306c5724",
+      "upstream_sha256": "dc57c6fd1c5c168376ad1f7e071710b4a0e23603d527dc405219daef306c5724",
+      "modified": false
+    },
+    {
+      "path": "lib/XmlParserUtils/XmlParserUtils.h",
+      "bytes": 728,
+      "sha256": "32d630a37c61ddacc0822bd934c12642e509fc713d390542fc6d74a253946a67",
+      "upstream_sha256": "32d630a37c61ddacc0822bd934c12642e509fc713d390542fc6d74a253946a67",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/ascii.h",
+      "bytes": 3682,
+      "sha256": "42f8b392c70366743eacbc60ce021389ccaa333598dd49eef6ee5c93698ca205",
+      "upstream_sha256": "42f8b392c70366743eacbc60ce021389ccaa333598dd49eef6ee5c93698ca205",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/asciitab.h",
+      "bytes": 3520,
+      "sha256": "1cc0ae749019fc0e488cd1cf245f6beaa6d4f7c55a1fc797e5aa40a408bc266b",
+      "upstream_sha256": "1cc0ae749019fc0e488cd1cf245f6beaa6d4f7c55a1fc797e5aa40a408bc266b",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/expat.h",
+      "bytes": 42911,
+      "sha256": "b5223912a8045cfac5a4fefaa32502dafdfb255161a680722d3a62a9b15a4f72",
+      "upstream_sha256": "b5223912a8045cfac5a4fefaa32502dafdfb255161a680722d3a62a9b15a4f72",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/expat_config.h",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "upstream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified": true
+    },
+    {
+      "path": "lib/expat/expat_external.h",
+      "bytes": 5812,
+      "sha256": "7ed82825d053315c83ed58beb1bd8dcdc44116eeb938f170a67e3eac70fb64bf",
+      "upstream_sha256": "7ed82825d053315c83ed58beb1bd8dcdc44116eeb938f170a67e3eac70fb64bf",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/iasciitab.h",
+      "bytes": 3590,
+      "sha256": "ad8b01e9f323cc4208bcd22241df383d7e8641fe3c8b3415aa513de82531f89f",
+      "upstream_sha256": "ad8b01e9f323cc4208bcd22241df383d7e8641fe3c8b3415aa513de82531f89f",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/internal.h",
+      "bytes": 6914,
+      "sha256": "690fe0022c4f893680fa1815b33f8e8c5a65b3d1b93b8e38036bc9d496172807",
+      "upstream_sha256": "690fe0022c4f893680fa1815b33f8e8c5a65b3d1b93b8e38036bc9d496172807",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/latin1tab.h",
+      "bytes": 3573,
+      "sha256": "eab66226da100372e01e42e1cbcd8ac2bbbb5c1b5f95d735289cc85c7a8fc2ba",
+      "upstream_sha256": "eab66226da100372e01e42e1cbcd8ac2bbbb5c1b5f95d735289cc85c7a8fc2ba",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/nametab.h",
+      "bytes": 8908,
+      "sha256": "d95bdc1c798a6829ac71f4cdd3546c4d76a0d341b30561cc93b815843deeec07",
+      "upstream_sha256": "d95bdc1c798a6829ac71f4cdd3546c4d76a0d341b30561cc93b815843deeec07",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/siphash.h",
+      "bytes": 12761,
+      "sha256": "bebb56e1dc4cc644e3c52a73739b53a31c7cfe539aef9a31fef9c42402dc4a47",
+      "upstream_sha256": "bebb56e1dc4cc644e3c52a73739b53a31c7cfe539aef9a31fef9c42402dc4a47",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/utf8tab.h",
+      "bytes": 3522,
+      "sha256": "8cd26bd461d334d5e1caedb3af4518d401749f2fc66d56208542b29085159c18",
+      "upstream_sha256": "8cd26bd461d334d5e1caedb3af4518d401749f2fc66d56208542b29085159c18",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/winconfig.h",
+      "bytes": 2036,
+      "sha256": "f7b8ac2a4566c712ca49dfc444ef1f90f9092c04081e77896868dc8647fe4cd0",
+      "upstream_sha256": "f7b8ac2a4566c712ca49dfc444ef1f90f9092c04081e77896868dc8647fe4cd0",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmlparse.c",
+      "bytes": 304430,
+      "sha256": "3e97c0024f61b348a0423506577bf10895bd8291c1d42b7cb9dcaff701323497",
+      "upstream_sha256": "84ea12628363b14af5c798016b4f3b287ce964c79071a343583d4812ef45966b",
+      "modified": true
+    },
+    {
+      "path": "lib/expat/xmlrole.c",
+      "bytes": 35367,
+      "sha256": "2f46a4b921a6069623b172535ac6f2d5c1bff977f95e71bfcbd3318c6be2d787",
+      "upstream_sha256": "2f46a4b921a6069623b172535ac6f2d5c1bff977f95e71bfcbd3318c6be2d787",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmlrole.h",
+      "bytes": 4372,
+      "sha256": "fe301afd6ea715712d8a96621c047e00f98dc07848a339502810146abee5e8de",
+      "upstream_sha256": "fe301afd6ea715712d8a96621c047e00f98dc07848a339502810146abee5e8de",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmltok.c",
+      "bytes": 58512,
+      "sha256": "7cff21c69341dd0f737a5c6ad927160aff771f786a57722d62294bccceb73c0e",
+      "upstream_sha256": "7cff21c69341dd0f737a5c6ad927160aff771f786a57722d62294bccceb73c0e",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmltok.h",
+      "bytes": 11707,
+      "sha256": "33e3aaadfedece1fcc34ebe025745c81f9496cef8aa18e8719354bf84c03d3cc",
+      "upstream_sha256": "33e3aaadfedece1fcc34ebe025745c81f9496cef8aa18e8719354bf84c03d3cc",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmltok_impl.c",
+      "bytes": 52192,
+      "sha256": "addc821084209230353fdb8465f7b0719f7e348d5c51fded3fccc948945b6ead",
+      "upstream_sha256": "addc821084209230353fdb8465f7b0719f7e348d5c51fded3fccc948945b6ead",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmltok_impl.h",
+      "bytes": 3430,
+      "sha256": "f05ad4fe5e98429a7349ff04f57192cac58c324601f2a2e5e697ab0bc05d36d5",
+      "upstream_sha256": "f05ad4fe5e98429a7349ff04f57192cac58c324601f2a2e5e697ab0bc05d36d5",
+      "modified": false
+    },
+    {
+      "path": "lib/expat/xmltok_ns.c",
+      "bytes": 4419,
+      "sha256": "46c0d6d09520fea911b75658c51e5a4a2e4b2153765b1f5e809f16668822692f",
+      "upstream_sha256": "46c0d6d09520fea911b75658c51e5a4a2e4b2153765b1f5e809f16668822692f",
+      "modified": false
+    },
+    {
+      "path": "src/fontIds.h",
+      "bytes": 75,
+      "sha256": "16cff42ba8bcaab2029161d5eebf5373b1d129e0a0c72e5e90654bdba67d2b7c",
+      "upstream_sha256": "01bfc6f2e25d9a1304bc64637731a4af34a1bb93b4ce0f71de650c87084f8108",
+      "modified": true
+    }
+  ]
+}

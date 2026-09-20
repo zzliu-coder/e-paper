@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <mutex>
 
 class SimpleUart {
 public:
@@ -70,7 +71,13 @@ public:
 
     // 注册接收回调函数
     void registerCallback(std::function<void(const std::vector<uint8_t>&)> callback) {
+        std::lock_guard<std::mutex> lock(m_callbackMutex);
         m_callback = callback;
+    }
+    // Board-level diagnostics must survive transient legacy screen callbacks.
+    void registerObserver(std::function<void(const std::vector<uint8_t>&)> observer) {
+        std::lock_guard<std::mutex> lock(m_callbackMutex);
+        m_observer = std::move(observer);
     }
 
     // 发送数据
@@ -146,9 +153,12 @@ private:
         while (true) {
             int length = uart_read_bytes(uart->m_uartNum, buffer, RX_BUFFER_SIZE - 1, pdMS_TO_TICKS(100));
             
-            if (length > 0 && uart->m_callback) {
+            if (length > 0) {
+                std::function<void(const std::vector<uint8_t>&)> callback,observer;
+                {std::lock_guard<std::mutex> lock(uart->m_callbackMutex);callback=uart->m_callback;observer=uart->m_observer;}
                 std::vector<uint8_t> data(buffer, buffer + length);
-                uart->m_callback(data);
+                if(observer)observer(data);
+                if(callback)callback(data);
             }
         }
     }
@@ -163,6 +173,8 @@ private:
     int m_rxPin;
     int m_baudRate;
     bool m_initialized;
+    std::mutex m_callbackMutex;
+    std::function<void(const std::vector<uint8_t>&)> m_observer;
     
     // 任务句柄
     TaskHandle_t m_rxTaskHandle;

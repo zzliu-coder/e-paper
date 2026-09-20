@@ -14,12 +14,17 @@ PRODUCT = "metalio-personal-sdk"
 WIDTH, HEIGHT = 800, 480
 MAX_LINE = 16384
 ALLOWED = {"hello", "ping", "status", "inventory", "input.snapshot", "power.status", "wifi.status",
-           "wifi.scan", "sd.status", "sd.roundtrip", "bt.info", "rtc.status", "audio.info", "audio.sample", "audio.tone", "scene.set",
+           "wifi.scan", "sd.status", "sd.roundtrip", "bt.info", "rtc.status", "rtc.set", "audio.info", "audio.sample", "audio.tone", "scene.set",
            "scene.get", "frame.read", "i2c.recover", "imu.probe", "imu.enable", "imu.read",
            "haptic.pulse", "display.text", "job.get", "selftest.status", "selftest.open",
            "selftest.run", "selftest.logs", "selftest.log.read",
+           "storage.usb",
            "inkdesk.status", "inkdesk.open", "inkdesk.tap", "inkdesk.key",
            "inkdesk.ui.open", "inkdesk.ui.frame", "inkdesk.fontlab.log",
+           "inkdesk.fontbench.frame", "inkdesk.fontbench.open", "inkdesk.fontbench.config",
+           "inkdesk.fontbench.control", "inkdesk.fontbench.state", "inkdesk.fontbench.lock", "inkdesk.fontbench.log",
+           "inkdesk.fontlab4.page", "inkdesk.fontlab4.log",
+           "paper.status", "paper.open", "paper.tap", "paper.command", "paper.transfer", "paper.maintenance", "paper.file", "paper.network", "paper.bluetooth",
            "book.begin", "book.chunk", "book.commit", "book.abort", "book.read"}
 
 
@@ -136,8 +141,11 @@ def choose_port(explicit=None):
     return candidates[0]["port"]
 
 
-def open_serial(port):
+def open_serial(port, atomic_lines=False):
     import serial
+    if atomic_lines:
+        from serial_quiet import open_quiet_serial
+        return open_quiet_serial(port)
     # Set line states before opening. Never toggle reset/download control lines.
     link = serial.Serial(port=None, baudrate=115200, timeout=0.1, write_timeout=2, exclusive=True)
     link.dtr = False
@@ -145,6 +153,10 @@ def open_serial(port):
     link.port = port
     link.open()
     return link
+
+
+class DeviceRebooted(ConnectionError):
+    """Protocol identity changed on a live transport; do not toggle USB lines."""
 
 
 class Client:
@@ -166,7 +178,7 @@ class Client:
                 continue
             self.last_packet = time.monotonic()
             if self.boot_id and p.get("boot_id") != self.boot_id:
-                raise ConnectionError("Device rebooted; a fresh identity handshake is required")
+                raise DeviceRebooted("Device rebooted; a fresh identity handshake is required")
             seq = p.get("seq")
             if type(seq) is int:
                 if self.last_seq is not None and seq != self.last_seq + 1:
@@ -301,7 +313,7 @@ class Client:
     def audio_info(self):
         return self.request("audio.info")
 
-    def audio_sample(self, timeout=5):
+    def audio_sample(self, timeout=15):
         """Capture one bounded microphone window; no audio is played."""
         return self.request("audio.sample", timeout=timeout)
 
@@ -330,7 +342,7 @@ class Client:
     def rtc_status(self):
         return self.request("rtc.status")
 
-    def wait_tone_idle(self, timeout=3, interval=0.05):
+    def wait_tone_idle(self, timeout=15, interval=0.05):
         """Wait for the asynchronous tone task without retrying the tone request."""
         deadline = time.monotonic() + timeout
         last = None

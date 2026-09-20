@@ -147,7 +147,7 @@ bool UserInactiveLongEnoughLocked()
         return false;
     }
     // 虚拟 U 盘 / 显式禁待机：禁止无操作进待机（PC 挂载或产测老化可能长时间无触摸）
-    if (NeedHeld(PowerNeed::UsbVirtualDisk) || NeedHeld(PowerNeed::StandbyInhibit)) {
+    if (NeedHeld(PowerNeed::UsbVirtualDisk) || NeedHeld(PowerNeed::StandbyInhibit) || NeedHeld(PowerNeed::PeripheralControl)) {
         return false;
     }
     if (pwr::last_user_activity_us == 0) {
@@ -228,6 +228,7 @@ bool IsWifiBoard()
 
 void RestoreWifiConfigUiAsync(void* /*arg*/)
 {
+#ifndef CONFIG_PAPER_CORE_APP
     if (Application::GetInstance().GetDeviceState() != kDeviceStateWifiConfiguring) {
         return;
     }
@@ -237,22 +238,27 @@ void RestoreWifiConfigUiAsync(void* /*arg*/)
     hint += Lang::Strings::ACCESS_VIA_BROWSER;
     hint += wifi_ap.GetWebServerUrl();
     Application::GetInstance().Alert(Lang::Strings::WIFI_CONFIG_MODE, hint.c_str(), "gear", "");
+#endif
 }
 
 void RestoreProvisioningUiAsync(void* /*arg*/)
 {
+#ifndef CONFIG_PAPER_CORE_APP
     const DeviceState st = Application::GetInstance().GetDeviceState();
     if (st == kDeviceStateWifiConfiguring) {
         RestoreWifiConfigUiAsync(nullptr);
     } else if (st == kDeviceStateActivating) {
         Application::GetInstance().ResumeActivationAfterStandby();
     }
+#endif
 }
 
 /** 与 boot_key EnterStandbyAsync 同形：无 lambda；进待机前先停传输 */
 void EnterStandbyUiShowCb(void* /*arg*/)
 {
+#ifndef CONFIG_PAPER_CORE_APP
     CloudScreen::StopTransfer();
+#endif
     StandbyScreen::Show();
 }
 
@@ -554,11 +560,12 @@ void ApplyLocked(Mode next)
     }
 
     const Mode prev = mode;
-    const bool want_main_rail_off =
-        (next == Mode::AppIdle) ||
-        (next == Mode::StandbyUi && StandbyScreen::IsActive());
+    const bool want_main_rail_off = !NeedHeld(PowerNeed::PeripheralControl) &&
+        ((next == Mode::AppIdle) ||
+        (next == Mode::StandbyUi && StandbyScreen::IsActive()));
 
     if (next == prev) {
+        QueueMainRailForModeLocked(want_main_rail_off);
         if (next == Mode::StandbyUi && !standby_wake_exit && !shutdown_requested) {
             ArmStandbyLpTaskLocked();
             // 空闲先进 StandbyUi 再 Show：等 Overlay 就绪后补停网（对齐电源键路径）
@@ -568,7 +575,7 @@ void ApplyLocked(Mode next)
                 wifi_stop_pending = true;
             }
             if (StandbyScreen::IsActive()) {
-                QueueMainRailForModeLocked(true);
+                QueueMainRailForModeLocked(want_main_rail_off);
             }
         }
         // 档位未变时仍按 DeviceState 刷 PA：Idle↔Speaking 等常停在 NetActive

@@ -113,20 +113,23 @@ int BTAudioCodec::Read(int16_t *dest, int samples)
     {
         return 0;
     }
-    size_t bytes_read;
+    size_t bytes_read = 0;
 
     std::vector<int32_t> bit32_buffer(samples);
     // A diagnostic read must have a finite upper bound.  The previous
     // portMAX_DELAY path could hold the USB command task forever when the
     // external BT audio clock or microphone was absent.
-    constexpr TickType_t kReadTimeout = pdMS_TO_TICKS(350);
-    if (i2s_channel_read(rx_handle_, bit32_buffer.data(), samples * sizeof(int32_t), &bytes_read,
-                         kReadTimeout) != ESP_OK)
+    // IDF takes milliseconds, not ticks; 100 Hz previously turned 350 into 35 ms.
+    constexpr uint32_t kReadTimeoutMs = 350;
+    const auto error = i2s_channel_read(rx_handle_, bit32_buffer.data(), samples * sizeof(int32_t), &bytes_read,
+                                      kReadTimeoutMs);
+    if (error != ESP_OK && error != ESP_ERR_TIMEOUT)
     {
         ESP_LOGW(TAG, "Read timed out or failed");
         return 0;
     }
 
+    if (bytes_read > size_t(samples) * sizeof(int32_t) || bytes_read % sizeof(int32_t)) return 0;
     samples = bytes_read / sizeof(int32_t);
     for (int i = 0; i < samples; i++)
     {

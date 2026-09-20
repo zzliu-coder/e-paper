@@ -23,6 +23,11 @@
 #include <stdio.h>
 #include <wifi_configuration_ap.h>
 #include <wifi_station.h>
+#include "wifi_scan_lease.h"
+#ifdef CONFIG_PAPER_CORE_APP
+#include "paper_shell/network_service.hpp"
+#include "paper_shell/bluetooth_service.hpp"
+#endif
 
 static const char* TAG = "PowerHw";
 
@@ -52,7 +57,11 @@ static void NotifyNetworkIconChanged()
 static void MainRailBtReinitTask(void* /*arg*/)
 {
     vTaskDelay(pdMS_TO_TICKS(kMainRailBtSettleMs));
+#ifdef CONFIG_PAPER_CORE_APP
+    paper_bluetooth::DefaultInitialization(BluetoothScreen::ApplyDefaultMode);
+#else
     BluetoothScreen::ApplyDefaultMode();
+#endif
     s_main_rail_bt_reinit_busy.store(false, std::memory_order_release);
     vTaskDelete(nullptr);
 }
@@ -263,6 +272,11 @@ esp_err_t power_hw_wifi_stop(void)
 
 esp_err_t power_hw_wifi_start(void)
 {
+#ifdef CONFIG_PAPER_CORE_APP
+    if(!paper_network::WantsRadio())return ESP_OK;
+    if(!WifiScanLease::TryAcquire("paper-power-resume"))return ESP_ERR_INVALID_STATE;
+    auto err=WifiStation::GetInstance().StartManual();WifiScanLease::Release();return err;
+#else
     if (!IsWifiNetwork()) {
         return ESP_ERR_NOT_SUPPORTED;
     }
@@ -306,6 +320,7 @@ esp_err_t power_hw_wifi_start(void)
     ESP_LOGI(TAG, "WiFi STA started");
     NotifyNetworkIconChanged();
     return ESP_OK;
+#endif
 }
 
 esp_err_t power_hw_cpu_freq_set(int mhz)

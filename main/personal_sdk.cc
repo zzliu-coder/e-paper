@@ -16,6 +16,12 @@
 #include "pcf8563.h"
 #include "sc7a20h.h"
 #include "wifi_station.h"
+#include "esp_wifi.h"
+#ifdef CONFIG_PAPER_CORE_APP
+#include "paper_shell/network_service.hpp"
+#include "paper_shell/bluetooth_service.hpp"
+#endif
+#include "usb_virtual_disk.h"
 
 #include "esp_lv_adapter.h"
 #include "lvgl.h"
@@ -50,7 +56,6 @@
 namespace personal_sdk {
 namespace {
 
-constexpr const char* kSdkVersion = "1.0.0-fontlab3.1";
 constexpr size_t kMaxInputName = 24;
 constexpr size_t kMaxInputSource = 16;
 constexpr int kInputPollPeriodMs = 20;
@@ -524,12 +529,28 @@ AudioCodec* GetAudioCodecSafe() {
     return Board::GetInstance().GetAudioCodec();
 }
 
+class LocalAudioLease {
+public:
+    LocalAudioLease()=default;
+    LocalAudioLease(const LocalAudioLease&)=delete;
+    LocalAudioLease& operator=(const LocalAudioLease&)=delete;
+#ifdef CONFIG_PAPER_CORE_APP
+    paper::Status status=paper_bluetooth::BeginLocalAudio();
+    ~LocalAudioLease(){if(status)paper_bluetooth::EndLocalAudio();}
+    bool ready()const{return bool(status);}
+#else
+    bool ready()const{return true;}
+#endif
+};
+
 void AudioToneTask(void* arg) {
     auto* tone = static_cast<ToneArgs*>(arg);
     bool success = false;
     if (tone != nullptr) {
         AudioCodec* codec = GetAudioCodecSafe();
         if (codec != nullptr) {
+        LocalAudioLease route;
+        if (route.ready()) {
             bool expected = false;
             if (audio_started.compare_exchange_strong(expected, true)) {
                 // 只在第一次明确请求 tone 时启动 I2S；不会在开机自动发声。
@@ -563,6 +584,7 @@ void AudioToneTask(void* arg) {
             codec->EnableOutput(previous_output);
             codec->SetDiagnosticVolume(previous_volume);
             if (pa_ok) io.setLevel(IOExpander::Pin::PA, previous_pa != 0);
+        }
         }
         delete tone;
     }
@@ -789,6 +811,12 @@ void AddAudioSample(cJSON* reply) {
         AddResult(reply, false);
         return;
     }
+    LocalAudioLease route;
+    if(!route.ready()){
+        audio_sample_busy=false;
+        Str(reply,"error","本地音频通道未就绪或正在使用蓝牙");
+        AddResult(reply,false);return;
+    }
 
     // Preserve the caller's enable state.  A diagnostic sample must not leave
     // the normal application muted or listening after it returns.
@@ -814,7 +842,8 @@ void AddAudioSample(cJSON* reply) {
     }
 
     std::vector<int16_t> pcm(static_cast<size_t>(samples));
-    const bool input_ok = codec->InputData(pcm);
+    const int received = codec->InputDataChecked(pcm);
+    const bool input_ok = received == samples;
     int peak = 0;
     int nonzero = 0;
     uint64_t sum_abs = 0;
@@ -838,7 +867,7 @@ void AddAudioSample(cJSON* reply) {
     AddBool(reply, "input_data_ok", input_ok);
     Num(reply, "sample_rate", sample_rate);
     Num(reply, "samples_requested", samples);
-    Num(reply, "samples_observed", input_ok ? samples : 0);
+    Num(reply, "samples_observed", std::max(0,received));
     Num(reply, "peak_abs", peak);
     Num(reply, "nonzero_samples", input_ok ? nonzero : 0);
     Num(reply, "mean_abs", input_ok && samples > 0
@@ -861,6 +890,15 @@ void AddWifiStatus(cJSON* reply) {
         return;
     }
     auto& station = WifiStation::GetInstance();
+#ifdef CONFIG_PAPER_CORE_APP
+    auto snapshot=paper_network::Snapshot();
+    AddBool(wifi,"connected",snapshot.connected);AddBool(wifi,"link_in_progress",snapshot.busy);
+    AddBool(wifi,"lp_paused",station.IsLpPaused());Str(wifi,"ssid",snapshot.connected?snapshot.ssid.c_str():"");Str(wifi,"ip",snapshot.ip.c_str());
+    wifi_ap_record_t ap={};
+    if(snapshot.connected&&esp_wifi_sta_get_ap_info(&ap)==ESP_OK){Num(wifi,"rssi_dbm",ap.rssi);Num(wifi,"channel",ap.primary);}
+    else{cJSON_AddNullToObject(wifi,"rssi_dbm");cJSON_AddNullToObject(wifi,"channel");}
+    Str(wifi,"scan",snapshot.message.c_str());AddResult(reply,true);return;
+#endif
     AddBool(wifi, "connected", station.IsConnected());
     AddBool(wifi, "link_in_progress", station.IsLinkInProgress());
     AddBool(wifi, "lp_paused", station.IsLpPaused());
@@ -1017,10 +1055,31 @@ void Request(const char* line, cJSON** local_reply = nullptr) {
     } else if (book_transfer::Handle(cmd->valuestring,req,reply)) {
         auto* error=cJSON_GetObjectItem(reply,"error");
         if(cJSON_IsString(error))err=error->valuestring;
+    } else if (!std::strcmp(cmd->valuestring, "storage.usb")) {
+        // Host-side SD provisioning path. It only requests the asynchronous
+        // USB/SD state; it never formats, erases, or writes files.
+        auto* enabled = cJSON_GetObjectItemCaseSensitive(req, "enabled");
+        if (!cJSON_IsBool(enabled)) {
+            err = "invalid_enabled";
+        } else {
+            auto& vd = UsbVirtualDisk::GetInstance();
+            vd.Init();
+            AddBool(reply, "supported", vd.IsSupported());
+            const bool desired = cJSON_IsTrue(enabled);
+            if (!vd.IsSupported()) {
+                err = "usb_storage_unsupported";
+            } else if (desired != vd.IsGadgetActive() && !vd.IsBusy()) {
+                vd.Toggle();
+            }
+            AddBool(reply, "requested", desired);
+            AddBool(reply, "active", vd.IsGadgetActive());
+            AddBool(reply, "busy", vd.IsBusy());
+            Num(reply, "hint", static_cast<int>(vd.GetUiHint()));
+        }
     } else if (!std::strcmp(cmd->valuestring, "hello")) {
         Str(reply, "product", "metalio-personal-sdk");
         Str(reply, "board", "metalio_eink4");
-        Str(reply, "version", kSdkVersion);
+        Str(reply, "version", esp_app_get_description()->version);
         Str(reply, "idf", esp_get_idf_version());
         Str(reply, "mode", "official-diagnostic-hardware-probe");
         Str(reply, "app_version", esp_app_get_description()->version);
@@ -1029,18 +1088,25 @@ void Request(const char* line, cJSON** local_reply = nullptr) {
             "hello", "ping", "status", "display.text", "job.get", "inventory",
             "input.snapshot", "power.status", "imu.probe", "imu.read", "haptic.pulse",
             "audio.info", "audio.sample", "audio.tone", "wifi.status", "wifi.scan", "sd.status",
-            "sd.roundtrip", "bt.info", "rtc.status", "scene.set", "scene.get", "frame.read",
+            "sd.roundtrip", "bt.info", "rtc.status", "rtc.set", "scene.set", "scene.get", "frame.read",
             "selftest.status", "selftest.open", "selftest.run", "selftest.logs", "selftest.log.read",
-            "inkdesk.status", "inkdesk.open", "inkdesk.tap", "inkdesk.key", "inkdesk.ui.open", "inkdesk.ui.frame", "inkdesk.fontlab.log",
+            "storage.usb",
+#ifdef CONFIG_PAPER_CORE_APP
+            "paper.status", "paper.open", "paper.tap", "paper.command", "paper.transfer", "paper.maintenance", "paper.file", "paper.network", "paper.bluetooth",
+            "inkdesk.status", "inkdesk.open", "inkdesk.tap", "inkdesk.ui.open",
+#else
+            "inkdesk.status", "inkdesk.open", "inkdesk.tap", "inkdesk.key", "inkdesk.ui.open", "inkdesk.ui.frame", "inkdesk.fontlab.log", "inkdesk.fontbench.frame", "inkdesk.fontbench.open", "inkdesk.fontbench.config", "inkdesk.fontbench.control", "inkdesk.fontbench.state", "inkdesk.fontbench.lock", "inkdesk.fontbench.log", "inkdesk.fontlab4.page", "inkdesk.fontlab4.log",
             "book.begin", "book.chunk", "book.commit", "book.abort", "book.read",
+#endif
         };
         for (const char* capability : commands) {
             cJSON_AddItemToArray(caps, cJSON_CreateString(capability));
         }
         AddBool(reply, "board_ready", ready.load());
-        Str(reply, "hardware_probe", "inkdesk-r2.3");
+        Str(reply, "hardware_probe", "paper-maintenance-1");
         AddBool(reply, "efuse_write", false);
         AddBool(reply, "flash_write", false);
+        AddBool(reply, "sd_package_ota", true);
     } else if (!std::strcmp(cmd->valuestring, "ping")) {
         // Keep the reply small and side-effect free.
     } else if (!std::strcmp(cmd->valuestring, "status") ||
@@ -1257,6 +1323,19 @@ void Request(const char* line, cJSON** local_reply = nullptr) {
         AddBluetoothInfo(reply);
     } else if (!std::strcmp(cmd->valuestring, "rtc.status")) {
         AddRtcStatus(reply);
+    } else if (!std::strcmp(cmd->valuestring, "rtc.set")) {
+        // Epoch supplied by the local developer host; device timezone determines
+        // the wall clock stored in the RTC, matching the official RTC driver.
+        auto* value=cJSON_GetObjectItemCaseSensitive(req,"epoch");
+        if(!cJSON_IsNumber(value)||!std::isfinite(value->valuedouble)||
+           value->valuedouble<946684800||value->valuedouble>=4102444800.0||
+           std::floor(value->valuedouble)!=value->valuedouble){err="invalid_epoch";}
+        else{
+            time_t epoch=static_cast<time_t>(value->valuedouble);struct tm local{};
+            if(!localtime_r(&epoch,&local)||!Pcf8563::GetInstance().SetTime(local))err="rtc_write_failed";
+            else if(!Pcf8563::GetInstance().ApplyRtcToSystem())err="rtc_apply_failed";
+            else AddRtcStatus(reply);
+        }
     } else {
         err = "unsupported_command";
     }
@@ -1413,7 +1492,9 @@ esp_err_t StartTransport() {
     if (error != ESP_OK) {
         return error;
     }
-    return xTaskCreate(Transport, "sdk_usb", 8192, nullptr, 5, nullptr) == pdPASS
+    // PAPER file/hash paths add stack frames; real-device low-water was 360 B
+    // with 8 KiB. Retain headroom for diagnostics instead of approaching overflow.
+    return xTaskCreate(Transport, "sdk_usb", 16384, nullptr, 5, nullptr) == pdPASS
                ? ESP_OK
                : ESP_ERR_NO_MEM;
 }
@@ -1475,6 +1556,11 @@ cJSON* RecordReplay(const char* path) {
     if (codec == nullptr || audio_tone_busy.load() || audio_sample_busy.exchange(true)) {
         Str(result, "result", "FAIL");
         return result;
+    }
+    LocalAudioLease route;
+    if(!route.ready()){
+        audio_sample_busy=false;Str(result,"result","FAIL");
+        Str(result,"error","本地音频通道未就绪或正在使用蓝牙");return result;
     }
     if (!audio_started.exchange(true)) codec->Start();
     const int volume = codec->output_volume();

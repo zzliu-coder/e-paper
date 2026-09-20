@@ -1,5 +1,8 @@
 #include "dual_network_board.h"
 #include "selftest.h"
+#if CONFIG_PAPER_CORE_APP
+#include "paper_shell/bluetooth_service.hpp"
+#endif
 #include "bt_audio_codec.h"
 #include "bq27220_gauge.h"
 #include "display/lv_adapter_display.h"
@@ -323,8 +326,11 @@ private:
         }
         ESP_LOGI(TAG, "BT audio UART ready (TX=%d RX=%d)", BT_AUDIO_TX_PIN, BT_AUDIO_RX_PIN);
 
-        uart.registerCallback([](const std::vector<uint8_t>& data) {
+        uart.registerObserver([](const std::vector<uint8_t>& data) {
             selftest::BluetoothRx(data.data(), data.size());
+#if CONFIG_PAPER_CORE_APP
+            paper_bluetooth::Observe(data.data(), data.size());
+#endif
             // 按可打印字符输出，CR/LF 换成空格，便于串口日志阅读
             std::string line;
             line.reserve(data.size());

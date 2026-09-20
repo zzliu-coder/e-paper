@@ -12,7 +12,7 @@ inline constexpr int LabFontpack2=4;
 inline constexpr int LabFontpack4=5;
 inline constexpr const char* LabProfiles[]={
  "A / 思源黑体 · 现有基线",
- "B / 思源黑体 · LVGL 微调",
+ "B / 思源黑体 · MONO",
  "C / 霞鹜新晰黑 · 屏幕版",
  "D / 文泉驿微米黑 · 嵌入式"
 };
@@ -56,17 +56,19 @@ inline void FontLab(inkdesk::Frame& f,int page,int profile,int size,int saved,in
   LabText(f,24,538,432,"清晨，窗边的光。",LabSizes[size],profile);
   LabText(f,24,596,432,"设置 Wi-Fi 82%",LabSizes[size],profile);
  }else{
-  Panel(f,{20,274,440,106});Text(f,36,286,400,"MiSans / 25 px / 2bpp",18);
-  LabFontpackText(f,36,338,408,"阅读美晨 Aa82",25,2);
-  Panel(f,{20,390,440,106});Text(f,36,402,400,"MiSans / 30 px / 2bpp",18);
-  LabFontpackText(f,36,442,408,"阅读美晨 Aa82",30,2);
-  Panel(f,{20,506,440,106},true);Text(f,36,518,400,"MiSans / 30 px / 4bpp",18,false);
-  LabFontpackText(f,36,558,408,"阅读美晨 Aa82",30,4,false);
+  // Historical fontpack comparison: exact 30px, both polarities, no visual votes.
+  for(int j=0;j<4;++j){
+   const int x=20+(j%2)*224,y=276+(j/2)*164;
+   const bool inverse=j>=2;const int bpp=(j%2)?4:2;
+   Panel(f,{x,y,216,148},inverse);
+   Text(f,x+8,y+10,200,bpp==2?"MiSans 30 / 2bpp":"MiSans 30 / 4bpp",18,!inverse);
+   LabFontpackText(f,x+8,y+64,200,"阅读美晨",30,bpp,!inverse);
+  }
   Text(f,24,616,432,"现有面板仍为 1-bit · 这里比较覆盖率",18);
  }
  Text(f,24,644,432,LabProfiles[profile],18);
  const char* votes[]={"清楚","太细","太粗","粘连"};
- for(int i=0;i<4;++i)Button(f,{20+i*112,678,104,50},votes[i],vote,i,false,20);
+ if(page!=5)for(int i=0;i<4;++i)Button(f,{20+i*112,678,104,50},votes[i],vote,i,false,20);
  Text(f,24,744,432,saved==1?"已存 SD · 可继续比较":saved<0?"保存失败 · 请连接电脑查看":"点击评价，记录当前方案与字号",18);
 }
 }

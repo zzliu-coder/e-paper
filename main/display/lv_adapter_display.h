@@ -14,6 +14,7 @@
 #include "esp_mmap_assets.h"
 
 struct EpdFlushCtx;
+namespace paper::fontbench {class Session;}
 
 struct TouchVirtualKey {
     const char* name;
@@ -85,7 +86,13 @@ public:
     // 下一帧 LVGL flush 走全刷，用于大字更新等场景，减少局刷残影。
     void RequestNextFullRefresh();
     // Caller holds the LVGL lock. Render and wait for the panel's BUSY result.
-    esp_err_t RefreshDiagnostic(bool full = true);
+    esp_err_t RefreshDiagnostic(bool full = true, bool yieldGui = false);
+    bool IsPaperPresenting() const;
+#if CONFIG_PAPER_CORE_APP
+    esp_err_t RefreshPaper(const uint8_t* portrait2,size_t bytes,bool full,bool gray);
+    esp_err_t RecoverPaper();
+#endif
+    esp_err_t RefreshFontBench(paper::fontbench::Session&,bool full,uint8_t* packed_luma,size_t capacity);
     // Read-only diagnostic snapshot. Caller holds the LVGL lock.
     bool CopyDiagnosticFrame(uint8_t* output,size_t size) const;
 

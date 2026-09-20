@@ -1,0 +1,4 @@
+freetype-py==2.5.1
+fonttools==4.63.0
+Pillow==12.3.0
+pytest==9.0.2

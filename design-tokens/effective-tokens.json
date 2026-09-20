@@ -1,0 +1,244 @@
+{
+  "name": "PAPER / MiSans 固件实施规范",
+  "version": "4.0.0-glyph3-native",
+  "target": {
+    "width": 480,
+    "height": 800,
+    "ppi": 235,
+    "diagonalInches": 3.97,
+    "outputBits": {
+      "system": 1,
+      "reading": 2,
+      "gray_requires_device_acceptance": true
+    },
+    "orientation": "portrait",
+    "pixelMeaning": "native device pixel",
+    "nativePanelWidth": 800,
+    "nativePanelHeight": 480,
+    "nominalPpiFromUser": true
+  },
+  "color": {
+    "ink": "#000000",
+    "paper": "#FFFFFF",
+    "selected": "solid or status dot + explicit state text",
+    "disabled": "outline + reason text",
+    "gray": "no gray in 1-bit device output"
+  },
+  "spacing": {
+    "unit": 4,
+    "page": 24,
+    "gutter": 12,
+    "column": 210,
+    "card": 20,
+    "section": 28,
+    "inside": 8
+  },
+  "radius": {
+    "small": 6,
+    "square": 28,
+    "card": 6,
+    "hero": 28,
+    "pill": 999,
+    "circle": "diameter / 2",
+    "button": 10,
+    "compact": 8,
+    "choice": 6,
+    "key": 6
+  },
+  "stroke": {
+    "divider": 1,
+    "outline": 2,
+    "icon": 2,
+    "glyph": 10,
+    "glyphRange": [
+      6,
+      12
+    ]
+  },
+  "geometry": {
+    "circle": "one instrument or independent control",
+    "square": "short information / compact controls",
+    "capsule": "Reserved signature control; never the default for actions, return, numeric choices or keys",
+    "panel": "reading / notes / files",
+    "pair": "210 + 12 + 210 = 432",
+    "largeDotIcons": "64–120 px only",
+    "primaryAccent": "one visual focus per screen",
+    "quietPages": [
+      "reader",
+      "capsule_detail",
+      "meeting_transcript"
+    ]
+  },
+  "touch": {
+    "minimum": 56,
+    "preferred": 64,
+    "calendarWidth": 60,
+    "calendarHeight": 50,
+    "exceptions": {
+      "qwerty_key": {
+        "width": 40,
+        "height": 64,
+        "gap": 3,
+        "reason": "10-column input on432px; explicit tested exception, 9-key preferred"
+      },
+      "calendar": {
+        "width": 60,
+        "height": 50
+      }
+    }
+  },
+  "typography": {
+    "annotation": {
+      "px": 16,
+      "use": "non-essential identifier"
+    },
+    "meta": {
+      "px": 18,
+      "weight": 500
+    },
+    "caption": {
+      "px": 20,
+      "weight": 500
+    },
+    "body": {
+      "px": 22,
+      "weight": 500,
+      "lineHeight": 32
+    },
+    "reading": {
+      "px": 26,
+      "weight": 400,
+      "lineHeight": 40,
+      "compactPx": 24,
+      "compactLineHeight": 36
+    },
+    "title": {
+      "px": 32,
+      "weight": 500,
+      "lineHeight": 44
+    },
+    "hero": {
+      "px": 40,
+      "weight": 500
+    },
+    "dot": {
+      "use": "independent large numerals / large graphic symbols",
+      "minimumDotStep": 10
+    },
+    "font": "MiSans",
+    "mono": "\"SFMono-Regular\",Consolas,\"Liberation Mono\",monospace",
+    "webPreviewFallback": "system-ui, sans-serif (not evidence of MiSans)"
+  },
+  "refresh": {
+    "automaticAnimation": false,
+    "secondsTicker": false,
+    "loading": "explicit stage + discrete progress",
+    "fullRefreshPolicy": "retain existing driver; physical verification required",
+    "truePanelGrayscale": "CONDITIONAL_HARDWARE_ACCEPTANCE",
+    "owner": "single DisplayService",
+    "implicitPolishEveryTap": false
+  },
+  "status": "NATIVE_UI_IMPLEMENTED_TARGET_ACCEPTANCE_PENDING",
+  "rendering": {
+    "preferredHint": "FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_BITMAP",
+    "raster": "FT_RENDER_MODE_NORMAL",
+    "masterCoverageBits": 8,
+    "monoThreshold": 128,
+    "luminanceCodesGray4": [
+      0,
+      85,
+      170,
+      255
+    ],
+    "luminanceCodesCalibrated": false,
+    "glyphSource": "offline exact-ppem MiSans; runtime external font support preserved",
+    "subpixelRGB": false,
+    "ditherText": false,
+    "contentTextImmutable": true,
+    "cacheKey": [
+      "font_sha256",
+      "face",
+      "axes_or_weight",
+      "ppem",
+      "hint",
+      "raster",
+      "coverage_bits",
+      "mapping_version",
+      "polarity_policy"
+    ],
+    "cacheBudget": "measure in P0/P2; bounded and recoverable"
+  },
+  "forms": {
+    "finiteOptions": "visible segmented buttons or dedicated full-page list",
+    "collapsedSelect": "do not use as default",
+    "selectionAfterAsync": "pending until backend readback confirms",
+    "longChoices": "searchable full-page list"
+  },
+  "scope_version": "3.0-interface-only-voice",
+  "recording_ui": {
+    "output_bits": 1,
+    "partial_merge_window_ms": [
+      1000,
+      2000
+    ],
+    "merge_window_status": "INITIAL_TUNING_RANGE_NOT_LATENCY_PROMISE",
+    "audio_capture_independent_of_display": true,
+    "continuous_waveform_animation": false,
+    "global_recording_indicator": true,
+    "view_exit_does_not_stop_recording": true,
+    "current_sentence_editable_until_final": true,
+    "implementation": "DEFERRED_INTERFACE_ONLY"
+  },
+  "readerFontPolicy": {
+    "ui_family": "MiSans",
+    "reader_default_family": "MiSans",
+    "reader_changeable": true,
+    "scopes": [
+      "book",
+      "default"
+    ],
+    "priority": [
+      "book override",
+      "reading default",
+      "legacy default"
+    ],
+    "metrics_source": "same font family/revision used for layout and paint",
+    "new_native_controls_minimum": 56,
+    "publication": "immutable reader family resource",
+    "preserve_anchor": true,
+    "false_weight_or_rescale": false,
+    "glyph_reference": "retain latest locally approved GLYPH templates; legacy base preview is not a replacement",
+    "implementation": "HOST_VERIFIED; complete CrossMux and hardware remain separate"
+  },
+  "controls": {
+    "buttonHeight": 64,
+    "compactHeight": 56,
+    "backHit": 56,
+    "choiceWidth": 80,
+    "choiceHeight": 56,
+    "choiceGapX": 8,
+    "choiceGapY": 8,
+    "keyRadius": 6,
+    "disabled": "no strike or underline; unframed numeric label, noninteractive; explanatory legend",
+    "alignment": "short labels optical-centered; settings label left and value right"
+  },
+  "layout": {
+    "headerHeight": 112,
+    "contentTop": 128,
+    "footerTop": 708,
+    "footerHeight": 64,
+    "statusTop": 776,
+    "readerBodyTop": 142,
+    "readerBodyHeight": 560,
+    "libraryRows": 6,
+    "listRows": 8,
+    "settingsRows": 6,
+    "fontRows": 5,
+    "listRowHeight": 76,
+    "keyHeight": 64,
+    "keyWidth": 40,
+    "keyGap": 3,
+    "keyboardTop": 432,
+    "keyboardBottom": 632
+  }
+}

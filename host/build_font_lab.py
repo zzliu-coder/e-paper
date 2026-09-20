@@ -13,9 +13,9 @@ from fontTools.ttLib import TTCollection
 SIZES = (16, 18, 20, 22, 24, 28, 32, 40)
 PROFILES = {
     0: ('Pillow baseline / Source Han Sans Medium', fontdir/'SourceHanSansCN-Medium.otf', None),
-    1: ('LVGL light hint / Source Han Sans Medium', fontdir/'SourceHanSansCN-Medium.otf', None),
-    2: ('LVGL light hint / LXGW Neo XiHei Screen', fontdir/'candidates/LXGWNeoXiHeiScreen.ttf', None),
-    3: ('LVGL light hint / WenQuanYi Micro Hei', fontdir/'candidates/WenQuanYiMicroHei-Regular.ttf', 0),
+    1: ('FreeType AUTO MONO / Source Han Sans Medium', fontdir/'SourceHanSansCN-Medium.otf', None),
+    2: ('FreeType AUTO MONO / LXGW Neo XiHei Screen', fontdir/'candidates/LXGWNeoXiHeiScreen.ttf', None),
+    3: ('FreeType AUTO MONO / WenQuanYi Micro Hei', fontdir/'candidates/WenQuanYiMicroHei-Regular.ttf', 0),
 }
 SAMPLE = '阅读美晨设置清窗边的光正在示例系统之继续，。（中文）'
 CHARS = ''.join(sorted(set(SAMPLE + ''.join(chr(i) for i in range(32, 127))), key=ord))
@@ -24,6 +24,12 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--converter', required=True, type=Path)
     a = p.parse_args()
+    converter=a.converter.resolve()
+    package=converter.parent/'package.json'
+    if not package.is_file():raise ValueError('Cannot verify converter package.json')
+    package_info=json.loads(package.read_text())
+    if package_info.get('name')!='lv_font_conv' or package_info.get('version')!='1.5.3':
+        raise ValueError('Legacy lab requires verified lv_font_conv 1.5.3')
     dest = root/'main/font_lab_assets'
     dest.mkdir(exist_ok=True)
     # lv_font_conv consumes a single TTF/OTF face. Keep the original TTC and
@@ -79,7 +85,7 @@ inline const lv_font_t* LabFont(int profile,int size){
  return nullptr;
 }
 '''%(declarations,rows))
-    report={'converter':'lv_font_conv@1.5.3','sizes':SIZES,'characters':CHARS,
+    report={'converter':'lv_font_conv@'+package_info['version'],'converter_sha256':hashlib.sha256(converter.read_bytes()).hexdigest(),'sizes':SIZES,'characters':CHARS,
             'profiles':{str(p):d for p,(d,_,_) in PROFILES.items()},
             'font_sha256':{str(p):hashlib.sha256(font.read_bytes()).hexdigest() for p,(_,font,_) in PROFILES.items()},
             'files':{f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(dest.glob('*.c'))}}

@@ -1,3 +1,12 @@
+from __future__ import annotations
+if __name__ == '__main__':
+    from pathlib import Path as _P
+    import runpy as _run, sys as _sys
+    _entry=_P(__file__).resolve().parents[1]/'tools/fontbench/app'/'open_device.py'
+    _sys.path.insert(0,str(_entry.parent))
+    _run.run_path(str(_entry),run_name='__main__')
+    raise SystemExit
+
 """Open the existing on-device lab through the resident USB service."""
 import json
 import time

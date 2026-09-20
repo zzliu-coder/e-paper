@@ -1,0 +1,19 @@
+diff --git a/managed_components/espressif__esp_tinyusb/tinyusb_msc.c b/managed_components/espressif__esp_tinyusb/tinyusb_msc.c
+--- a/managed_components/espressif__esp_tinyusb/tinyusb_msc.c
++++ b/managed_components/espressif__esp_tinyusb/tinyusb_msc.c
+@@
+ static tinyusb_msc_driver_t *p_msc_driver;
++
++// Optional application hook for SCSI START STOP UNIT. The default remains
++// a no-op so existing MSC applications keep their behavior.
++__attribute__((weak)) void tinyusb_msc_start_stop_cb_hook(uint8_t lun, bool start, bool load_eject)
++{
++    (void)lun;
++    (void)start;
++    (void)load_eject;
++}
+@@
+     if (load_eject && !start) {
++        tinyusb_msc_start_stop_cb_hook(lun, start, load_eject);
+         // Eject media from the storage
+         msc_storage_mount_to_app();

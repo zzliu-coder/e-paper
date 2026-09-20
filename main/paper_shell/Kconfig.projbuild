@@ -1,0 +1,15 @@
+menu "PAPER candidate integration"
+config PAPER_CORE_APP
+    bool "Replace legacy InkDesk demo entry with PAPER candidate"
+    default n
+    help
+        Candidate source integration. Enable only after preserving the current
+        working image. This is not a full CrossMux reader parity implementation.
+config PAPER_GRAY_VERIFIED
+    bool "Physical grayscale already validated on this exact Metalio panel"
+    depends on PAPER_CORE_APP
+    default n
+    help
+        Keep disabled until GDEM0397T81 / SSD1677 color blocks, retention, exit,
+        sleep, wake and repeated-refresh tests pass on this device.
+endmenu

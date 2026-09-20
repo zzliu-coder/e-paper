@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 
 // ESP32-S3 / P4：将 SD 卡以 TinyUSB MSC 挂到电脑（虚拟 U 盘）。
 // 启用时占用 USB OTG PHY（与 USB Serial/JTAG 互斥）；停用时先断 USB 再收回 SD。
@@ -35,6 +36,8 @@ public:
     bool IsSupported() const;
     bool IsGadgetActive() const;
     bool IsBusy() const;
+    uint32_t SwitchStage() const;
+    uint32_t PreviousBootStage() const;
     bool IsSdExportedToHost() const;
     UiHint GetUiHint() const;
 
@@ -43,6 +46,9 @@ public:
 
     // 若当前已启用（或正在切换），异步停用；离开设置页时调用。
     void DisableIfActive();
+
+    // 主机发送 SCSI 安全弹出后调用；异步拆掉 MSC 并恢复 USB Serial/JTAG。
+    void NotifyHostEject();
 
     // UI 注册；worker 完成后在 LVGL 线程外调用，UI 侧用 lv_async_call 刷新。
     void SetUiNotify(UiNotifyFn fn);

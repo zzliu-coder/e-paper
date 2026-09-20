@@ -12,6 +12,12 @@
 #include "esp_memory_utils.h"
 #include "driver/gpio.h"
 #include "esp_lcd_panel_ssd1677.h"
+#if CONFIG_PAPER_CORE_APP
+#include "paper_shell/gray/panel_port.h"
+#else
+#include "ui/fontbench/gray/panel_port.h"
+#endif
+#include "esp_timer.h"
 #include "esp_lcd_panel_interface.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
@@ -143,8 +149,10 @@ static esp_err_t epaper_set_ram_area(esp_lcd_panel_io_handle_t io, uint16_t x, u
 static esp_err_t panel_epaper_wait_busy(esp_lcd_panel_t *panel)
 {
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
+    const int64_t deadline=esp_timer_get_time()+10000000;
     while (gpio_get_level(epaper_panel->busy_gpio_num)) {
-        vTaskDelay(pdMS_TO_TICKS(1));
+        if(esp_timer_get_time()>=deadline)return ESP_ERR_TIMEOUT;
+        vTaskDelay(1);
     }
     esp_rom_delay_us(100);
     return ESP_OK;
@@ -297,6 +305,7 @@ esp_err_t esp_lcd_new_panel_ssd1677(const esp_lcd_panel_io_handle_t io,
 
 static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel)
 {
+    ESP_RETURN_ON_ERROR(fb_panel_detach(panel), TAG, "fontbench lifecycle guard");
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (epaper_panel->reset_gpio_num >= 0) {
         gpio_reset_pin(epaper_panel->reset_gpio_num);
@@ -315,6 +324,7 @@ static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel)
 
 static esp_err_t epaper_panel_reset(esp_lcd_panel_t *panel)
 {
+    ESP_RETURN_ON_ERROR(fb_panel_normal_guard(panel), TAG, "fontbench lifecycle guard");
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (epaper_panel->reset_gpio_num >= 0) {
         ESP_RETURN_ON_ERROR(gpio_set_level(epaper_panel->reset_gpio_num, epaper_panel->reset_level), TAG, "RST low err");
@@ -414,6 +424,7 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
 static esp_err_t epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
                                           const void *color_data)
 {
+    ESP_RETURN_ON_ERROR(fb_panel_normal_guard(panel), TAG, "fontbench restore required");
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (gpio_get_level(epaper_panel->busy_gpio_num)) {
         return ESP_ERR_NOT_FINISHED;
@@ -518,6 +529,7 @@ static esp_err_t epaper_panel_set_gap(esp_lcd_panel_t *panel, int x_gap, int y_g
 
 static esp_err_t epaper_panel_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
 {
+    ESP_RETURN_ON_ERROR(fb_panel_normal_guard(panel), TAG, "fontbench restore required");
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (on_off) {
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1677_CMD_DISP_UPDATE_CTRL2,
@@ -550,6 +562,7 @@ esp_err_t epaper_panel_prepare_for_partial(esp_lcd_panel_t *panel)
 
 esp_err_t epaper_panel_deep_sleep(esp_lcd_panel_t *panel)
 {
+    ESP_RETURN_ON_ERROR(fb_panel_normal_guard(panel), TAG, "fontbench restore required");
     ESP_RETURN_ON_FALSE(panel, ESP_ERR_INVALID_ARG, TAG, "panel is NULL");
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
 
@@ -600,3 +613,9 @@ static inline uint8_t byte_reverse(uint8_t data)
     };
     return (uint8_t)((lut[data & 0x0F] << 4) | lut[data >> 4]);
 }
+
+#if CONFIG_PAPER_CORE_APP
+#include "paper_shell/gray/panel_port.inc"
+#else
+#include "ui/fontbench/gray/panel_port.inc"
+#endif

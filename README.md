@@ -1,3 +1,24 @@
+# 当前迭代：PAPER / GLYPH 3 中文开发与维护
+
+**当前为开发快照，存在已确认的大尺寸 JPEG 黑块问题，尚未修复。** 构建、测试边界和资源排除说明见 [2026-09-20 开发快照](docs/DEVELOPMENT_SNAPSHOT_20260920.md)，请勿作为稳定版直接部署。
+
+当前产品代码采用 PAPER 页面与阅读内核；USB 调试、SD 管理和受控更新集成到
+「系统设置 → 开发与维护」。操作、字体资源分工与恢复边界见
+[开发与维护](docs/PAPER_MAINTENANCE.md)。真机验收结果以 SDK_STATUS.md 最新日期为准。
+下文 FontBench、FontLab 和 InkDesk 说明保留为历史版本记录，不代表当前入口。
+
+# 历史：统一字体试验台
+
+入口保持：首页 → 设置 → 字体实验室。活动界面已统一为一屏参数按钮和四格对照，电脑端提供敏感性矩阵。当前操作请看 [字体试验台](docs/FONT_BENCH.md)。历史记录和其他日常功能保留。
+
+---
+
+# Font Lab 4 增量实现
+
+新入口沿用：首页 → 设置 → 字体实验室。扩展样本从 SD `/inkdesk/font-lab4` 加载；旧版实验室由右上角 OLD 进入。安装、生成与验收见 [Font Lab 4](docs/FONT_LAB4.md) 及 [实机操作](docs/FONT_LAB_GUIDE.md)。本次为源码实现，完整 ESP-IDF 构建和真机光学效果待本机验证；下文保留 3.1 历史说明。
+
+---
+
 # Metalio Personal SDK 1.0
 
 当前设备已验证运行 `1.0.0-fontlab3.1`。它保留 InkDesk R2 阅读与开发底座，并提供 **首页 → 设置 → 字体实验室**：字号、算法、反白、中英混排、实景和位深六页，用于在真实 480×800 I1 墨水屏上比较四套中文黑体。位深页只观察现有字库的覆盖率输入，真正四灰阶仍需独立的面板驱动项目。组件/API/构建说明见 [UI_COMPONENTS.md](docs/UI_COMPONENTS.md) 和 [FONT_LAB_GUIDE.md](docs/FONT_LAB_GUIDE.md)。设备备份、刷写回执和逐帧证据留在本机 `artifacts/`，默认不进入代码仓库。

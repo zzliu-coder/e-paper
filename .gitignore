@@ -8,6 +8,14 @@ dependencies.lock.old
 # Device-specific backups, flash images, logs and frame captures
 artifacts/
 sessions/
+.fontlab4-backup/
+.fontlab4-install.json
+.fontbench-install.json
+.fontbench6-backup/
+.paper-core-install.json
+.paper-source-backups/
+# Rebuildable font experiment SD image banks; keep generators in Git.
+tools/fontbench/sdcard/
 
 # Local Python/test/editor state
 __pycache__/

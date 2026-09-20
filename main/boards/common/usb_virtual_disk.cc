@@ -15,6 +15,7 @@
 
 #include "driver/gpio.h"
 #include "esp_check.h"
+#include "esp_attr.h"
 #include "esp_private/usb_phy.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -48,6 +49,16 @@
 #endif
 #endif
 
+// Called by ESP-IDF's MSC SCSI START STOP UNIT handler.  Keep this hook
+// intentionally narrow: a host-side load/eject=1, start=0 is the only event
+// that should reclaim the shared USB PHY.  The worker performs the delayed
+// teardown after the SCSI response has been returned.
+extern "C" void tinyusb_msc_start_stop_cb_hook(uint8_t lun, bool start, bool load_eject) {
+    if (lun == 0 && load_eject && !start) {
+        UsbVirtualDisk::GetInstance().NotifyHostEject();
+    }
+}
+
 namespace {
 
 constexpr const char* TAG = "UsbVirtualDisk";
@@ -72,6 +83,7 @@ enum UsbReq : int {
     kReqEnableGadget = 0,
     kReqDisableGadget,
     kReqForceDisableGadget,  // 离开页面：重试后仍强制拆栈恢复 USJ
+    kReqHostEject,            // 主机 SCSI 安全弹出后，延迟拆栈恢复 USJ
     kReqSdToUsb,
     kReqSdToApp,
 };
@@ -84,9 +96,18 @@ sdmmc_card_t* s_sd_card = nullptr;
 std::atomic<bool> s_gadget_active{false};
 std::atomic<bool> s_sd_to_usb{false};
 std::atomic<bool> s_op_in_progress{false};
+// RTC evidence survives supported reset types; a complete power loss may clear it.
+// 1 storage, 2 SD handoff, 3 PHY, 4 driver install, 5 active, 6 teardown, 7 reclaim, 8 idle.
+RTC_NOINIT_ATTR uint32_t s_stage_magic;
+RTC_NOINIT_ATTR uint32_t s_saved_stage;
+std::atomic<uint32_t> s_stage{0};
+uint32_t s_previous_stage=0;
+void SwitchStage(uint32_t stage){s_stage_magic=0x504d5343;s_saved_stage=stage;s_stage.store(stage);}
 std::atomic<bool> s_usb_switching{false};
 std::atomic<bool> s_inited{false};
 std::atomic<bool> s_want_active{false};  // 期望启用态；Toggle 改它，worker 结束后再对齐
+std::atomic<bool> s_host_attached{false};  // 主机是否仍挂着 MSC；弹出后自动收回 USJ
+std::atomic<bool> s_pending_detach{false};
 std::atomic<bool> s_reconcile_pending{false};  // 仅忙时改期望后置位，避免 DisableFailed 死循环重试
 std::atomic<int> s_ui_hint{static_cast<int>(UsbVirtualDisk::UiHint::Idle)};
 
@@ -167,12 +188,12 @@ void PostGadgetRequest(UsbReq req) {
     xQueueOverwrite(s_usb_req_queue, &req);
 }
 
-void PostMountRequest(UsbReq req) {
+bool PostMountRequest(UsbReq req) {
     if (s_usb_req_queue == nullptr) {
-        return;
+        return false;
     }
     // 队列非空（多半是启停）时丢掉挂载请求，避免反复枚举冲掉 Disable。
-    xQueueSend(s_usb_req_queue, &req, 0);
+    return xQueueSend(s_usb_req_queue, &req, 0) == pdTRUE;
 }
 
 void PostReconcileLocked() {
@@ -345,6 +366,18 @@ void StorageMountChangedCb(tinyusb_msc_storage_handle_t /*handle*/, tinyusb_msc_
     s_sd_to_usb.store(event->mount_point == TINYUSB_MSC_STORAGE_MOUNT_USB,
                       std::memory_order_relaxed);
     SyncSdCardManagerFlags();
+
+    // TinyUSB 的 MSC 组件在收到 SCSI START STOP UNIT(load_eject=1) 后，
+    // 会先把介质切回 APP，再触发这个事件。macOS 此时可能仍保持 USB
+    // 枚举，不会发 TINYUSB_EVENT_DETACHED；把 APP 挂载事件交给 worker，
+    // 延迟拆掉 MSC，恢复 USB Serial/JTAG。
+    if (event->mount_point == TINYUSB_MSC_STORAGE_MOUNT_APP &&
+        s_gadget_active.load(std::memory_order_relaxed) &&
+        s_host_attached.load(std::memory_order_relaxed) &&
+        !s_usb_switching.load(std::memory_order_relaxed)) {
+        UsbVirtualDisk::GetInstance().NotifyHostEject();
+    }
+
     if (!s_usb_switching.load(std::memory_order_relaxed) &&
         s_gadget_active.load(std::memory_order_relaxed)) {
         SyncUiFromState();
@@ -352,18 +385,23 @@ void StorageMountChangedCb(tinyusb_msc_storage_handle_t /*handle*/, tinyusb_msc_
 }
 
 void UsbEventCb(tinyusb_event_t* event, void* /*arg*/) {
-    if (event == nullptr || s_usb_switching.load(std::memory_order_relaxed) ||
-        !s_gadget_active.load(std::memory_order_relaxed)) {
-        return;
-    }
+    if (event == nullptr) return;
+    // Enumeration can finish inside driver_install. Preserve the edge while
+    // switching; only defer the mount request until the worker owns the gadget.
+    const bool canPost=!s_usb_switching.load(std::memory_order_relaxed)&&
+                       s_gadget_active.load(std::memory_order_relaxed);
     switch (event->id) {
         case TINYUSB_EVENT_ATTACHED:
             ESP_LOGI(TAG, "USB attached");
-            PostMountRequest(kReqSdToUsb);
+            s_host_attached.store(true, std::memory_order_relaxed);
+            s_pending_detach.store(false,std::memory_order_relaxed);
+            if(canPost)PostMountRequest(kReqSdToUsb);
             break;
         case TINYUSB_EVENT_DETACHED:
             ESP_LOGI(TAG, "USB detached");
-            PostMountRequest(kReqSdToApp);
+            s_host_attached.store(false, std::memory_order_relaxed);
+            s_pending_detach.store(true,std::memory_order_relaxed);
+            if(canPost)PostMountRequest(kReqSdToApp);
             break;
         default:
             break;
@@ -397,6 +435,9 @@ esp_err_t EnsureMscStorage() {
     s_sd_card = card;
 
     tinyusb_msc_driver_config_t msc_driver_cfg = {};
+    // 保留手动挂载时序：设备端先完成 SD/MSC 切换，再枚举 USB。
+    // macOS 的 START STOP UNIT 弹出由 tinyusb_msc_start_stop_cb_hook
+    // 捕获，避免打开 ESP-IDF 自动挂载后在本机板级时序中卡住枚举。
     msc_driver_cfg.user_flags.auto_mount_off = 1;
     msc_driver_cfg.callback = StorageMountChangedCb;
     msc_driver_cfg.callback_arg = nullptr;
@@ -452,6 +493,7 @@ esp_err_t UsbGadgetTeardownUnlocked() {
     vTaskDelay(pdMS_TO_TICKS(100));
     s_gadget_active.store(false, std::memory_order_relaxed);
     s_sd_to_usb.store(false, std::memory_order_relaxed);
+    s_host_attached.store(false, std::memory_order_relaxed);
     SetStandbyBlock(false);
     SyncSdCardManagerFlags();
     return first_err;
@@ -503,6 +545,7 @@ esp_err_t ReclaimSdAfterUsbDown() {
 }
 
 esp_err_t UsbGadgetStart() {
+    SwitchStage(1);
     esp_err_t err = EnsureMscStorage();
     if (err != ESP_OK) {
         return err;
@@ -515,6 +558,18 @@ esp_err_t UsbGadgetStart() {
     }
 
     s_usb_switching.store(true, std::memory_order_relaxed);
+    // Complete APP filesystem handoff before the host can submit MSC I/O.
+    // If this step fails or stalls, the USB Serial/JTAG PHY remains connected.
+    SwitchStage(2);
+    err = MountToUsb();
+    if(err!=ESP_OK){
+        (void)MountToAppWithRetry(3,150);
+        s_usb_switching.store(false,std::memory_order_relaxed);
+        return err;
+    }
+    s_host_attached.store(false,std::memory_order_relaxed);
+    s_pending_detach.store(false,std::memory_order_relaxed);
+    SwitchStage(3);
     RoutePhyToOtg();
 
     usb_phy_config_t phy_conf = {};
@@ -526,6 +581,7 @@ esp_err_t UsbGadgetStart() {
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "usb_new_phy failed: %s", esp_err_to_name(err));
         RoutePhyToUsj();
+        (void)MountToAppWithRetry(3,150);
         s_usb_switching.store(false, std::memory_order_relaxed);
         return err;
     }
@@ -542,29 +598,24 @@ esp_err_t UsbGadgetStart() {
     tusb_cfg.descriptor.string = (const char**)s_string_desc;
     tusb_cfg.descriptor.string_count = sizeof(s_string_desc) / sizeof(s_string_desc[0]);
 
+    SwitchStage(4);
     err = tinyusb_driver_install(&tusb_cfg);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "tinyusb_driver_install failed: %s", esp_err_to_name(err));
         usb_del_phy(s_phy_hdl);
         s_phy_hdl = nullptr;
         RoutePhyToUsj();
+        (void)MountToAppWithRetry(3,150);
         s_usb_switching.store(false, std::memory_order_relaxed);
         return err;
     }
 
     s_gadget_active.store(true, std::memory_order_relaxed);
-    err = MountToUsb();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "mount USB after start failed, rollback");
-        (void)MountToAppWithRetry(3, 150);
-        (void)UsbGadgetTeardownUnlocked();
-        s_usb_switching.store(false, std::memory_order_relaxed);
-        SyncUiFromState();
-        return err;
-    }
+    SwitchStage(5);
 
     s_usb_switching.store(false, std::memory_order_relaxed);
     SetStandbyBlock(true);
+    if(s_pending_detach.load()&&!s_host_attached.load())PostMountRequest(kReqSdToApp);
     SyncUiFromState();
     ESP_LOGI(TAG, "virtual U-disk enabled");
     return ESP_OK;
@@ -583,15 +634,20 @@ esp_err_t UsbGadgetStop(bool /*force*/) {
 
     s_usb_switching.store(true, std::memory_order_relaxed);
 
+    SwitchStage(6);
     esp_err_t err = UsbGadgetTeardownUnlocked();
-    if (ReclaimSdAfterUsbDown() != ESP_OK) {
+    SwitchStage(7);
+    const esp_err_t reclaim_err = ReclaimSdAfterUsbDown();
+    if (reclaim_err != ESP_OK) {
         ESP_LOGW(TAG, "USB down but SD reclaim incomplete");
+        if (err == ESP_OK) err = reclaim_err;
     }
 
     s_want_active.store(false, std::memory_order_relaxed);
     s_usb_switching.store(false, std::memory_order_relaxed);
     SyncUiFromState();
     if (err == ESP_OK) {
+        SwitchStage(8);
         ESP_LOGI(TAG, "virtual U-disk disabled, USJ restored");
     }
     return err;
@@ -600,8 +656,12 @@ esp_err_t UsbGadgetStop(bool /*force*/) {
 void UsbWorkerTask(void* /*arg*/) {
     UsbReq req = kReqDisableGadget;
     while (true) {
-        if (xQueueReceive(s_usb_req_queue, &req, portMAX_DELAY) != pdTRUE) {
-            continue;
+        if (xQueueReceive(s_usb_req_queue, &req, pdMS_TO_TICKS(250)) != pdTRUE) {
+            // A full queue must not lose a detach edge. Consume it only in
+            // this worker, after higher-priority gadget requests have drained.
+            if (!s_pending_detach.load() || s_host_attached.load() ||
+                !s_gadget_active.load()) continue;
+            req = kReqSdToApp;
         }
         s_op_in_progress.store(true, std::memory_order_relaxed);
         SetHint(UsbVirtualDisk::UiHint::Switching);
@@ -643,6 +703,19 @@ void UsbWorkerTask(void* /*arg*/) {
                     NotifyUi();
                 }
                 break;
+            case kReqHostEject:
+                // TinyUSB 的 SCSI 回调与 MSC 传输共用 USB 任务；先让最后一个
+                // START STOP UNIT 的 CSW 返回主机，再由 worker 拆栈，避免主机
+                // 看到半截响应。
+                vTaskDelay(pdMS_TO_TICKS(250));
+                s_want_active.store(false, std::memory_order_relaxed);
+                SetHint(UsbVirtualDisk::UiHint::Disabling);
+                NotifyUi();
+                if (UsbGadgetStop(true) != ESP_OK) {
+                    SetHint(UsbVirtualDisk::UiHint::DisableFailed);
+                    NotifyUi();
+                }
+                break;
             case kReqSdToUsb:
                 if (s_gadget_active.load(std::memory_order_relaxed) &&
                     s_want_active.load(std::memory_order_relaxed) &&
@@ -657,6 +730,9 @@ void UsbWorkerTask(void* /*arg*/) {
                 }
                 break;
             case kReqSdToApp:
+                // A queued detach may be stale after a fast reconnection.
+                if (s_host_attached.load(std::memory_order_relaxed)) break;
+                s_pending_detach.store(false,std::memory_order_relaxed);
                 if (s_gadget_active.load(std::memory_order_relaxed) &&
                     s_want_active.load(std::memory_order_relaxed) &&
                     !s_usb_switching.load(std::memory_order_relaxed)) {
@@ -666,6 +742,12 @@ void UsbWorkerTask(void* /*arg*/) {
                         NotifyUi();
                     } else {
                         SyncUiFromState();
+                        // A macOS eject produces DETACHED. Once the SD is
+                        // safely back under the app, tear down MSC so the
+                        // shared USB PHY returns to Serial/JTAG automatically.
+                        if (!s_host_attached.load(std::memory_order_relaxed)) {
+                            PostGadgetRequest(kReqForceDisableGadget);
+                        }
                     }
                 }
                 break;
@@ -692,6 +774,8 @@ void UsbVirtualDisk::Init() {
     if (s_inited.exchange(true)) {
         return;
     }
+    s_previous_stage=(s_stage_magic==0x504d5343&&s_saved_stage<=8)?s_saved_stage:0;
+    ::SwitchStage(0);
     RoutePhyToUsj();
     s_usb_req_queue = xQueueCreate(1, sizeof(UsbReq));
     if (s_usb_req_queue == nullptr) {
@@ -722,6 +806,8 @@ bool UsbVirtualDisk::IsGadgetActive() const {
 bool UsbVirtualDisk::IsBusy() const {
     return s_op_in_progress.load(std::memory_order_relaxed);
 }
+uint32_t UsbVirtualDisk::SwitchStage() const { return s_stage.load(); }
+uint32_t UsbVirtualDisk::PreviousBootStage() const { return s_previous_stage; }
 
 bool UsbVirtualDisk::IsSdExportedToHost() const {
     return s_sd_to_usb.load(std::memory_order_relaxed);
@@ -783,6 +869,18 @@ void UsbVirtualDisk::DisableIfActive() {
     PostGadgetRequest(kReqForceDisableGadget);
 }
 
+void UsbVirtualDisk::NotifyHostEject() {
+    Init();
+    if (s_usb_req_queue == nullptr || !s_gadget_active.load(std::memory_order_relaxed)) {
+        return;
+    }
+    s_host_attached.store(false, std::memory_order_relaxed);
+    s_want_active.store(false, std::memory_order_relaxed);
+    SetHint(UiHint::Disabling);
+    NotifyUi();
+    PostGadgetRequest(kReqHostEject);
+}
+
 void UsbVirtualDisk::SetUiNotify(UiNotifyFn fn) {
     std::lock_guard<std::mutex> lock(s_notify_mu);
     s_ui_notify = std::move(fn);
@@ -826,6 +924,8 @@ UsbVirtualDisk& UsbVirtualDisk::GetInstance() {
 }
 
 void UsbVirtualDisk::Init() {}
+uint32_t UsbVirtualDisk::SwitchStage() const { return 0; }
+uint32_t UsbVirtualDisk::PreviousBootStage() const { return 0; }
 
 bool UsbVirtualDisk::IsSupported() const {
     return false;
@@ -850,6 +950,7 @@ UsbVirtualDisk::UiHint UsbVirtualDisk::GetUiHint() const {
 void UsbVirtualDisk::Toggle() {}
 
 void UsbVirtualDisk::DisableIfActive() {}
+void UsbVirtualDisk::NotifyHostEject() {}
 
 void UsbVirtualDisk::SetUiNotify(UiNotifyFn /*fn*/) {}
 

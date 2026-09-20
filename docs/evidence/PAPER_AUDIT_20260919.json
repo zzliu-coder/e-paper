@@ -1,0 +1,550 @@
+{
+  "created_at": "2026-09-19T08:53:47.965629+00:00",
+  "purpose": "read-only audit, not new performance benchmark or implementation",
+  "repo": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/outputs/metalio-sdk-1.0",
+  "head": "7ce967e28188ce28e9c4c0a3b2ae1b7c9e7896ea",
+  "dirty_status_before_plan": [
+    " M .gitignore",
+    " M CMakeLists.txt",
+    " M README.md",
+    " M SDK_STATUS.md",
+    " M docs/FONT_LAB.md",
+    " M docs/FONT_LAB_GUIDE.md",
+    " M host/build_font_lab.py",
+    " M host/font_lab_acceptance.py",
+    " M host/font_lab_open.py",
+    " M host/metalio.py",
+    " M main/CMakeLists.txt",
+    " M main/Kconfig.projbuild",
+    " M main/boards/common/power_policy/power_policy.cc",
+    " M main/boards/common/usb_virtual_disk.cc",
+    " M main/boards/common/usb_virtual_disk.h",
+    " M main/boards/metalio-e-ink-4/esp_lcd_panel_ssd1677.c",
+    " M main/display/lv_adapter_display.cc",
+    " M main/display/lv_adapter_display.h",
+    " M main/inkdesk_app.cc",
+    " M main/personal_sdk.cc",
+    " M main/ui/font_lab.h",
+    " M main/ui_demo.cc",
+    " M sdkconfig",
+    "?? .fontbench-install.json",
+    "?? .fontbench6-backup/",
+    "?? .paper-core-install.json",
+    "?? .paper-source-backups/",
+    "?? components/paper_core/",
+    "?? design-tokens/",
+    "?? docs/FONT_BENCH.md",
+    "?? docs/FONT_LAB4.md",
+    "?? docs/FONT_RESOURCE_AUDIT_20260918.md",
+    "?? docs/PAPER_MAINTENANCE.md",
+    "?? docs/PAPER_MAINTENANCE_RESULTS_20260919.md",
+    "?? docs/USB_EJECT_FIX_20260918.md",
+    "?? docs/patches/",
+    "?? host/build_font_lab4.py",
+    "?? host/build_paper_resources.py",
+    "?? host/build_rescue_fonts.py",
+    "?? host/font_lab4_acceptance.py",
+    "?? host/font_lab4_export.py",
+    "?? host/font_lab4_list.py",
+    "?? host/font_lab4_open.py",
+    "?? host/font_lab4_sources.example.json",
+    "?? host/fontbench.py",
+    "?? host/fontlab4/",
+    "?? host/paper_dev.py",
+    "?? host/paper_maintenance_acceptance.py",
+    "?? host/provision_paper_sd.py",
+    "?? host/test_font_lab4_native.py",
+    "?? main/paper_shell/",
+    "?? main/ui/fontbench/",
+    "?? main/ui/fontlab4/",
+    "?? tests/fontlab4/",
+    "?? tests/paper-maintenance/",
+    "?? tests/test_paper_package.py",
+    "?? tools/"
+  ],
+  "source_fingerprints": [
+    {
+      "path": "components/esp-wifi-connect/ssid_manager.cc",
+      "sha256": "e3441e0fc84012b539bd08b680cdfbfdaca5eb55af55423400268d0a18d5daca",
+      "bytes": 3739
+    },
+    {
+      "path": "components/esp-wifi-connect/wifi_station.cc",
+      "sha256": "07277312dc726a3286b00f73b3b3dd6f36b422e4278e257a6f150788b80df8a7",
+      "bytes": 13269
+    },
+    {
+      "path": "components/paper_core/include/paper/common.hpp",
+      "sha256": "4c2711850abcd0d8c94e521fe5e1779a75b728fb466f4f6b48d3edd5b1c6ec61",
+      "bytes": 3579
+    },
+    {
+      "path": "components/paper_core/include/paper/document.hpp",
+      "sha256": "d3ed7a1b25e5e2aef2fe92c82a582ab600d9f6f186144b3862e07a5bae62e520",
+      "bytes": 5468
+    },
+    {
+      "path": "components/paper_core/include/paper/font_catalog.hpp",
+      "sha256": "188a33f9ba7d8ad341be3b7c5a3116b837ba12920aade141a2a47840fcdee5f6",
+      "bytes": 1541
+    },
+    {
+      "path": "components/paper_core/include/paper/generated/ui_tokens.hpp",
+      "sha256": "0bf611a8db6e58b67ee67f3064ff99569103d5fb3d99bcc073d5dc63f551622b",
+      "bytes": 1823
+    },
+    {
+      "path": "components/paper_core/include/paper/ime.hpp",
+      "sha256": "02ebcaaf0f5d09ae58d4efcf0312637d5a618759f805feafc912c9c3ce4155fd",
+      "bytes": 2182
+    },
+    {
+      "path": "components/paper_core/include/paper/reader_style.hpp",
+      "sha256": "3771b9771612f4e9acbc2a55d805ee76c8e22e6b041c5c057020a3dce5f22cd7",
+      "bytes": 916
+    },
+    {
+      "path": "components/paper_core/include/paper/runtime.hpp",
+      "sha256": "6050914a92a3fe888b56c9aa374f3b0e6bd6dbcf1a2cf39346f038911d9315a5",
+      "bytes": 4309
+    },
+    {
+      "path": "components/paper_core/include/paper/services.hpp",
+      "sha256": "8612804257bd6b8350498aa06662393b14eb8f0fa854106fafc7596ab02d09d8",
+      "bytes": 5630
+    },
+    {
+      "path": "components/paper_core/include/paper/storage.hpp",
+      "sha256": "a930d7c9d3c8875af19889d47e758e2165965af242713cda59392fe71afca0aa",
+      "bytes": 2601
+    },
+    {
+      "path": "components/paper_core/include/paper/text.hpp",
+      "sha256": "39db5e182a7102924d46e576954e9335f49fc11fb2f4a2c95efeda8f4a295ede",
+      "bytes": 4596
+    },
+    {
+      "path": "components/paper_core/include/paper/ui.hpp",
+      "sha256": "33ca9ff30c903f27e45a241b8adfd621129088767109d1b5f3d17f6bcf8da1c3",
+      "bytes": 2397
+    },
+    {
+      "path": "components/paper_core/src/common.cpp",
+      "sha256": "0370175c9520e2e329b10843d35aabaa5e6c76b7cf201e3bc68f682a69f84821",
+      "bytes": 13018
+    },
+    {
+      "path": "components/paper_core/src/deflate.cpp",
+      "sha256": "6c96976e114f473f8d7f73cd08cb069a0819bfaa655bafef54ebd596d6fde8de",
+      "bytes": 1342
+    },
+    {
+      "path": "components/paper_core/src/document.cpp",
+      "sha256": "31f49ca0fcdc99394589b7b3ebaebb21671297647f067c250123981f01990de8",
+      "bytes": 24061
+    },
+    {
+      "path": "components/paper_core/src/font_catalog.cpp",
+      "sha256": "77c94bca98cf198308f09b76b417db4444b5b16b96af711fdeb70cc7ad683573",
+      "bytes": 11681
+    },
+    {
+      "path": "components/paper_core/src/ime.cpp",
+      "sha256": "4f3973470a7da7d9f70107b7e5dcabf3b50e8656cd4cd2f02c2796691a79e32c",
+      "bytes": 11834
+    },
+    {
+      "path": "components/paper_core/src/reader.cpp",
+      "sha256": "8cc2e7b4643e5508c18df6e4a83577f84d4f7dfbd2499ffc1215f5cc94002124",
+      "bytes": 15170
+    },
+    {
+      "path": "components/paper_core/src/reader_font_ui.cpp",
+      "sha256": "57bbc47a56e82bd1c89c05d7623085f9dd6c52573e771f95c2d3c93fa288b451",
+      "bytes": 12640
+    },
+    {
+      "path": "components/paper_core/src/reader_style.cpp",
+      "sha256": "4ec9702450428db5655ae53ee2f3d89cfe2221deca9caaf8c3001df7116ce6ba",
+      "bytes": 3288
+    },
+    {
+      "path": "components/paper_core/src/runtime.cpp",
+      "sha256": "3fabbeba0356b6da9bb5a4cdec668ac13f53edf5cee70810a1c567eab21096bf",
+      "bytes": 22226
+    },
+    {
+      "path": "components/paper_core/src/services.cpp",
+      "sha256": "0988ddb0dfde64406655792cc8d3a25e8353a62b6977e2b5cc379ff54e98365a",
+      "bytes": 8737
+    },
+    {
+      "path": "components/paper_core/src/storage.cpp",
+      "sha256": "62984cb3ac0bfab56efa501ba5319f4d6d3822d6496662061408204d9b8c802b",
+      "bytes": 15351
+    },
+    {
+      "path": "components/paper_core/src/text.cpp",
+      "sha256": "a857397f26744a2617a47c504fd0bb8372ac1bee45af017b045f3d194bd0029f",
+      "bytes": 19100
+    },
+    {
+      "path": "components/paper_core/src/ui.cpp",
+      "sha256": "9aced5e1fe76ccbe0c740fe283f2c8f692256e7165dfe45a0f934013d30d700b",
+      "bytes": 7572
+    },
+    {
+      "path": "components/paper_core/src/ui_pages.cpp",
+      "sha256": "5de5c71c7232dbac90c716f3784b34cdab797123fa6f2d05e5cc381d80fcb104",
+      "bytes": 19171
+    },
+    {
+      "path": "dependencies.lock",
+      "sha256": "da0fc134a498f2c59c5b5101f4a33d31af55dbeb683507cad547653fb87bcf8c",
+      "bytes": 26898
+    },
+    {
+      "path": "design-tokens/effective-tokens.json",
+      "sha256": "9d59f7643772ecff709dd124b50abc633b383652cfdc7de41117a2c9c24f5b0b",
+      "bytes": 6340
+    },
+    {
+      "path": "host/service.py",
+      "sha256": "dac6f9f8ce3601768d3e6befd83b13e44d71da252862e77f4323f9b18c5b3795",
+      "bytes": 10327
+    },
+    {
+      "path": "main/boards/common/SimpleUart.hpp",
+      "sha256": "39ef49cbf06386a306eae4e31dc4ac7176df29ab0d5ce2bcfe009447d2d6ae85",
+      "bytes": 4665
+    },
+    {
+      "path": "main/boards/common/bt_audio_codec.cc",
+      "sha256": "6058ba2690fc244b487ce2d5dd792955a74d37988979321b2f49ba4c0080f183",
+      "bytes": 4840
+    },
+    {
+      "path": "main/boards/common/power_policy/power_policy.cc",
+      "sha256": "c9f48a5d2d08048445fe8170b4438a954cba9c50ffc49818b4bfb5bb31d46499",
+      "bytes": 27945
+    },
+    {
+      "path": "main/boards/metalio-e-ink-4/esp_lcd_panel_ssd1677.c",
+      "sha256": "2cd92741c9a1ec35feed319ab83d2517ce12808696ad44c7288dc62a0b3648f4",
+      "bytes": 27908
+    },
+    {
+      "path": "main/boards/metalio-e-ink-4/metalio_e_ink_4_board.cc",
+      "sha256": "4882df83e9ff400df55bcb311a464436b3956e5f72ff94e28529aacc9f7423f6",
+      "bytes": 48928
+    },
+    {
+      "path": "main/display/lv_adapter_display.cc",
+      "sha256": "76285d79ce4b17aa85f377ef58a29e24038cfa79ec4db5efee606444fcaef672",
+      "bytes": 76131
+    },
+    {
+      "path": "main/main.cc",
+      "sha256": "223cd3cdc9f4e51361649866db66e5c80176d73391105133695eabddd1d5646a",
+      "bytes": 1124
+    },
+    {
+      "path": "main/paper_shell/adapters/crossmux_source.cc",
+      "sha256": "10d4a2aa02132f2635c3c2218d8773b4ff2f6f0b8f68a486634539a3f3b24e3e",
+      "bytes": 3118
+    },
+    {
+      "path": "main/paper_shell/adapters/crossmux_source.hpp",
+      "sha256": "7e4084add64d21ff6a6d05873bd94d1207f81c8182656001d3eda9bfa09533a9",
+      "bytes": 568
+    },
+    {
+      "path": "main/paper_shell/gray/display_adapter.inc",
+      "sha256": "ffaa78121331cd6a6c766b9f0b18071d0eb1862cda1cf2cc3981f1fe83d76643",
+      "bytes": 2082
+    },
+    {
+      "path": "main/paper_shell/gray/driver.c",
+      "sha256": "1b63509ba86d3324558dc5dc74722ecfb3ed7fd360f364b2838aebe7ffab3f60",
+      "bytes": 6486
+    },
+    {
+      "path": "main/paper_shell/gray/driver.h",
+      "sha256": "31a1e7e29e6f49ed4e468290ce96222a0aa85104fbec4cc817ffa422825566e9",
+      "bytes": 2032
+    },
+    {
+      "path": "main/paper_shell/gray/panel_port.h",
+      "sha256": "7627c9fb9025a877e27eb54e4135d72a68e28bccb5fac9e6b6e56f61646b92d4",
+      "bytes": 503
+    },
+    {
+      "path": "main/paper_shell/gray/panel_port.inc",
+      "sha256": "59dcc57cd181fc0b6d82be2b74f5a0efbb520b29e6275e3a3c69e63aa30ac74e",
+      "bytes": 5278
+    },
+    {
+      "path": "main/paper_shell/inkdesk_bridge.cc",
+      "sha256": "20c3ef29984144a33437602df03113d77e5cb4aa30a8082741a91655ac8cadc0",
+      "bytes": 18372
+    },
+    {
+      "path": "main/paper_shell/maintenance.cc",
+      "sha256": "6dbe2fbeb6b6a0e1288d63e00c1551472e553893b421dea0bc0b0364be8c89a7",
+      "bytes": 11867
+    },
+    {
+      "path": "main/paper_shell/maintenance.hpp",
+      "sha256": "465a861a7efbbc3c1da860ebb4b4ac29968bf55685a058ab33184ff2d4e54719",
+      "bytes": 233
+    },
+    {
+      "path": "main/paper_shell/metalio_hardware.cc",
+      "sha256": "cd09d69b18b004df1f6833b0c6d6949d5532c86e01a6f1693af8b2b5f56a820d",
+      "bytes": 2068
+    },
+    {
+      "path": "main/paper_shell/metalio_hardware.hpp",
+      "sha256": "345a51c3c262d575520162419a5a7bd778e424e2eceb83d147b7ec955eabe8b8",
+      "bytes": 1113
+    },
+    {
+      "path": "main/paper_shell/product_sources.cmake",
+      "sha256": "faa94c9f0e5b59418da928b71ed888622d21fbcfe48f1579c003e359489fb3ff",
+      "bytes": 698
+    },
+    {
+      "path": "main/paper_shell/rescue_fonts.c",
+      "sha256": "41e2635474df662f521b67d33cc2b99a01cd4c9e66faf136dc9ae39fb8a14471",
+      "bytes": 205478
+    },
+    {
+      "path": "main/paper_shell/rescue_fonts.h",
+      "sha256": "21b0b4e97d85b4710e6c1f3a2ad03299cda957e69f30e41c8cdc4a8613bd0be0",
+      "bytes": 133
+    },
+    {
+      "path": "main/paper_shell/standby.cc",
+      "sha256": "e11f6f101e3f01fcd618009ee94d68fc5df58fd757aeadd9faa661589cb3ea08",
+      "bytes": 1789
+    },
+    {
+      "path": "main/personal_sdk.cc",
+      "sha256": "06dc6199da5ff2d323e36c049c49a3aa0de217f0faed68dc9fdab5a40ea9e69d",
+      "bytes": 60530
+    },
+    {
+      "path": "sdkconfig",
+      "sha256": "fb53d3ab0fd87708e31d620335b14e7860ed96c43b77c936f03d2121c59bdb50",
+      "bytes": 100624
+    }
+  ],
+  "prior_navigation_observations": {
+    "log": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/outputs/metalio-sdk-1.0/artifacts/paper-maint1-20260919/device-acceptance-final.jsonl",
+    "sha256": "c09984ef4f61b15c2fd562d8f746bfa98c11c94610837d7a0c9dedf2120b847b",
+    "method": "queued command receipt to first poll observing a new equal revision/presented and matching last_action; includes polling and transport latency; no reader timing measured",
+    "samples": [
+      {
+        "action": "maintenance-awake",
+        "queued_epoch": 1789797159.052372,
+        "first_observed_done_epoch": 1789797160.588941,
+        "elapsed_seconds": 1.537,
+        "revision": 3,
+        "error": ""
+      },
+      {
+        "action": "home",
+        "queued_epoch": 1789797160.802755,
+        "first_observed_done_epoch": 1789797162.229076,
+        "elapsed_seconds": 1.426,
+        "revision": 4,
+        "error": ""
+      },
+      {
+        "action": "settings",
+        "queued_epoch": 1789797162.4446862,
+        "first_observed_done_epoch": 1789797166.74618,
+        "elapsed_seconds": 4.301,
+        "revision": 5,
+        "error": ""
+      },
+      {
+        "action": "maintenance",
+        "queued_epoch": 1789797167.0386071,
+        "first_observed_done_epoch": 1789797170.53129,
+        "elapsed_seconds": 3.493,
+        "revision": 6,
+        "error": ""
+      },
+      {
+        "action": "library",
+        "queued_epoch": 1789797170.7475672,
+        "first_observed_done_epoch": 1789797173.722233,
+        "elapsed_seconds": 2.975,
+        "revision": 7,
+        "error": ""
+      },
+      {
+        "action": "transfer",
+        "queued_epoch": 1789797173.92957,
+        "first_observed_done_epoch": 1789797177.2208362,
+        "elapsed_seconds": 3.291,
+        "revision": 8,
+        "error": ""
+      },
+      {
+        "action": "home",
+        "queued_epoch": 1789797177.435787,
+        "first_observed_done_epoch": 1789797180.2940822,
+        "elapsed_seconds": 2.858,
+        "revision": 9,
+        "error": ""
+      },
+      {
+        "action": "home",
+        "queued_epoch": 1789797202.5804842,
+        "first_observed_done_epoch": 1789797204.121372,
+        "elapsed_seconds": 1.541,
+        "revision": 10,
+        "error": ""
+      }
+    ]
+  },
+  "local_production_font_headers": [
+    {
+      "file": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/work/paper-maintenance-assets/sd/paper/fonts/misans-400-26.pgf",
+      "bytes": 4846951,
+      "magic": "PGF1",
+      "glyph_count": 29280,
+      "index_bytes": 702720
+    },
+    {
+      "file": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/work/paper-maintenance-assets/sd/paper/fonts/misans-500-32.pgf",
+      "bytes": 7012352,
+      "magic": "PGF1",
+      "glyph_count": 29280,
+      "index_bytes": 702720
+    },
+    {
+      "file": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/work/paper-maintenance-assets/sd/paper/fonts/misans-ui-500-32.pgf",
+      "bytes": 131328,
+      "magic": "PGF1",
+      "glyph_count": 599,
+      "index_bytes": 14376
+    },
+    {
+      "file": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/work/paper-maintenance-assets/sd/paper/fonts/misans-ui-400-16.pgf",
+      "bytes": 45620,
+      "magic": "PGF1",
+      "glyph_count": 599,
+      "index_bytes": 14376
+    }
+  ],
+  "official_repository": {
+    "url": "https://github.com/CloudZao/Metalio-E-INK4",
+    "main_commit": "6d05a6583c0feaea97b91d9aade3ce6757321dc4",
+    "commit_date_utc": "2026-09-15T09:20:40Z",
+    "method": "GitHub API resolved main; fetched 13 raw files at pinned commit in memory, compared SHA256/bytes against working repo and existing filtered official source; no full clone.",
+    "local_official": "/Users/zheliu/Documents/Codex/2026-09-15/ni-h/work/official-metalio-eink4-20260915/src-filtered",
+    "comparisons": [
+      {
+        "path": "main/boards/metalio-e-ink-4/metalio_e_ink_4_board.cc",
+        "official_sha256": "e62ed856fb581fb7405297a6b623ddea595abb870eb2a5c6d5d56879a3e2087a",
+        "working_copy_equals_official": false,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/bq27220_gauge.cc",
+        "official_sha256": "17ed74a6f87e5c3fe70d7b65ba36a33f72748900a59233cc52f42a132699a8dc",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/sc7a20h.cc",
+        "official_sha256": "a7d48789c58392caa8cc5c30cdf894830946f9f194e74e42de83bea107b48ea1",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/pcf8563.cc",
+        "official_sha256": "5aafd62e30a6f7dee3a5256de60ac09ffb6e9d321552937cdc9f33d8e318b7af",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/bt_audio_codec.cc",
+        "official_sha256": "c100eb053d5f900ad6838df7b61267e4385bc749eda08a0c30852e8a91d87594",
+        "working_copy_equals_official": false,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/SimpleUart.hpp",
+        "official_sha256": "39ef49cbf06386a306eae4e31dc4ac7176df29ab0d5ce2bcfe009447d2d6ae85",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/SdCardManager.hpp",
+        "official_sha256": "a3962ef0925b4250a253120edc656e85243c02fcca7f0169781b028e70772329",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/power_policy/power_policy.cc",
+        "official_sha256": "7533e17af0f2a3f1c0f6a6d7d603deb2e90fabd670ae80c18cd9944a9074857b",
+        "working_copy_equals_official": false,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/common/power_policy/power_hw.cc",
+        "official_sha256": "3c71a68d77c8c773e0d76947d3c968ab1041b8364bc131c652b92050672d7a97",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/display/screen/bluetooth_screen/bluetooth_screen.cc",
+        "official_sha256": "cc330a21bde5af6acc2d41f4efb859f9487ca166aa8a7dc9780e418343e38f63",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "components/esp-wifi-connect/wifi_station.cc",
+        "official_sha256": "07277312dc726a3286b00f73b3b3dd6f36b422e4278e257a6f150788b80df8a7",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "components/esp-wifi-connect/ssid_manager.cc",
+        "official_sha256": "e3441e0fc84012b539bd08b680cdfbfdaca5eb55af55423400268d0a18d5daca",
+        "working_copy_equals_official": true,
+        "filtered_official_copy_equals_remote": true
+      },
+      {
+        "path": "main/boards/metalio-e-ink-4/esp_lcd_panel_ssd1677.c",
+        "official_sha256": "60ecbb553228aed84e31c5444de542904945ecdf5670dfd14ddfcc2575918492",
+        "working_copy_equals_official": false,
+        "filtered_official_copy_equals_remote": true
+      }
+    ]
+  },
+  "read_only_device_observation": {
+    "method": "existing single-owner USB service; status and paper.status only",
+    "device_id": "1020ba6e0be0",
+    "boot_id": "75ebe5f40a11df8b",
+    "uptime_ms": 10878924,
+    "heap_free": 74831,
+    "psram_free": 6811076,
+    "usb_stack_free_min_bytes": 8556,
+    "touch_read_errors": 0,
+    "input_queue_depth": 0,
+    "dropped": 0,
+    "screen": 6,
+    "revision": 31,
+    "presented": 31,
+    "font_error": "",
+    "reader_open": false,
+    "last_action": "prev",
+    "last_action_error": "尚未打开书籍",
+    "limitations": "Snapshot only. Does not measure ebook page latency, sustained heap use or physical refresh quality. Reader closed while in settings is not evidence that opening a book failed."
+  }
+}

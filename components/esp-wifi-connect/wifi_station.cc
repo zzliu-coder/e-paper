@@ -39,6 +39,7 @@ WifiStation::WifiStation() {
     esp_err_t err = nvs_open("wifi", NVS_READONLY, &nvs);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to open NVS: %d", err);
+        max_tx_power_=0;remember_bssid_=0;return;
     }
     err = nvs_get_i8(nvs, "max_tx_power", &max_tx_power_);
     if (err != ESP_OK) {
@@ -207,6 +208,30 @@ void WifiStation::Start() {
     ESP_ERROR_CHECK(esp_timer_create(&timer_args, &timer_handle_));
 }
 
+esp_err_t WifiStation::StartManual() {
+    if(!event_group_)return ESP_ERR_NO_MEM;
+    manual_=true;
+    if(timer_handle_)esp_timer_stop(timer_handle_);
+    if(station_netif_)return lp_paused_?ResumeFromLp():ESP_OK;
+    auto err=NetifInitOnce();if(err!=ESP_OK)return err;
+    station_netif_=esp_netif_create_default_wifi_sta();
+    if(!station_netif_)return ESP_ERR_NO_MEM;
+    wifi_init_config_t cfg=WIFI_INIT_CONFIG_DEFAULT();cfg.nvs_enable=false;
+    bool initialized=false;
+    err=esp_wifi_init(&cfg);
+    if(err==ESP_OK){initialized=true;err=esp_event_handler_instance_register(WIFI_EVENT,ESP_EVENT_ANY_ID,&WifiEventHandler,this,&instance_any_id_);}
+    if(err==ESP_OK)err=esp_event_handler_instance_register(IP_EVENT,IP_EVENT_STA_GOT_IP,&IpEventHandler,this,&instance_got_ip_);
+    if(err==ESP_OK)err=esp_wifi_set_storage(WIFI_STORAGE_RAM);
+    if(err==ESP_OK)err=esp_wifi_set_mode(WIFI_MODE_STA);
+    if(err==ESP_OK)err=esp_wifi_start();
+    if(err==ESP_OK)return ESP_OK;
+    if(instance_any_id_){esp_event_handler_instance_unregister(WIFI_EVENT,ESP_EVENT_ANY_ID,instance_any_id_);instance_any_id_=nullptr;}
+    if(instance_got_ip_){esp_event_handler_instance_unregister(IP_EVENT,IP_EVENT_STA_GOT_IP,instance_got_ip_);instance_got_ip_=nullptr;}
+    if(initialized){esp_wifi_stop();esp_wifi_deinit();}
+    esp_netif_destroy_default_wifi(station_netif_);station_netif_=nullptr;
+    return err;
+}
+
 bool WifiStation::WaitForConnected(int timeout_ms) {
     auto bits = xEventGroupWaitBits(event_group_, WIFI_EVENT_CONNECTED, pdFALSE, pdFALSE, timeout_ms / portTICK_PERIOD_MS);
     return (bits & WIFI_EVENT_CONNECTED) != 0;
@@ -285,15 +310,15 @@ void WifiStation::StartConnect() {
 
 int8_t WifiStation::GetRssi() {
     // Get station info
-    wifi_ap_record_t ap_info;
-    ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
+    wifi_ap_record_t ap_info={};
+    if(esp_wifi_sta_get_ap_info(&ap_info)!=ESP_OK)return -127;
     return ap_info.rssi;
 }
 
 uint8_t WifiStation::GetChannel() {
     // Get station info
-    wifi_ap_record_t ap_info;
-    ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
+    wifi_ap_record_t ap_info={};
+    if(esp_wifi_sta_get_ap_info(&ap_info)!=ESP_OK)return 0;
     return ap_info.primary;
 }
 
@@ -315,6 +340,11 @@ void WifiStation::SetPowerSaveMode(bool enabled) {
 // Static event handler functions
 void WifiStation::WifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     auto* this_ = static_cast<WifiStation*>(arg);
+    if(this_->manual_){
+        if(event_id==WIFI_EVENT_STA_DISCONNECTED||event_id==WIFI_EVENT_STA_STOP)
+            xEventGroupClearBits(this_->event_group_,WIFI_EVENT_CONNECTED);
+        return;
+    }
     if (this_->lp_paused_) {
         if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
             xEventGroupClearBits(this_->event_group_, WIFI_EVENT_CONNECTED);

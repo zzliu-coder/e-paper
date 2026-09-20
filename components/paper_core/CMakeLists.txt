@@ -1,0 +1,18 @@
+file(GLOB PAPER_CORE_SRC "src/*.cpp")
+idf_component_register(SRCS ${PAPER_CORE_SRC} "vendor/tjpgd/tjpgd.c" INCLUDE_DIRS "include" REQUIRES freertos esp_rom espressif__zlib mbedtls paper_reader_crossmux)
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_features(${COMPONENT_LIB} PRIVATE cxx_std_20)
+target_include_directories(${COMPONENT_LIB} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../managed_components/lvgl__lvgl/src/libs/gltf/stb_image")
+
+# The integration tool installs the token source and generator together.
+set(PAPER_PROFILE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
+if(NOT EXISTS "${PAPER_PROFILE_ROOT}/tools/generate_ui_tokens.py")
+  message(FATAL_ERROR "Install PAPER token source and generator alongside the component")
+endif()
+if(EXISTS "${PAPER_PROFILE_ROOT}/tools/generate_ui_tokens.py")
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  execute_process(COMMAND ${Python3_EXECUTABLE} "${PAPER_PROFILE_ROOT}/tools/generate_ui_tokens.py" --check RESULT_VARIABLE PAPER_TOKEN_CHECK)
+  if(NOT PAPER_TOKEN_CHECK EQUAL 0)
+    message(FATAL_ERROR "PAPER UI constants differ from the approved token source")
+  endif()
+endif()

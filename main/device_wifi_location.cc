@@ -19,6 +19,7 @@
 #include <esp_log.h>
 #include <esp_netif.h>
 #include <esp_wifi.h>
+#include "wifi_scan_lease.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <freertos/task.h>
@@ -179,6 +180,8 @@ void TeardownOwnedWifi(WifiStackOwned& stack) {
 
 bool ScanNearbyAps(std::vector<ApItem>& out) {
     out.clear();
+    if(!WifiScanLease::TryAcquire("diagnostic-scan"))return false;
+    struct ReleaseScanLease {~ReleaseScanLease(){WifiScanLease::Release();}} release_scan_lease;
 
     WifiStackOwned stack;
     if (!EnsureWifiRadioForScan(stack)) {

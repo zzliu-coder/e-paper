@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <atomic>
 
 #include <esp_event.h>
 #include <esp_timer.h>
@@ -23,6 +24,8 @@ public:
     static WifiStation& GetInstance();
     void AddAuth(const std::string &&ssid, const std::string &&password);
     void Start();
+    // PAPER owns the request lifecycle; no auto-scan or auto-join callbacks.
+    esp_err_t StartManual();
     void Stop();
     /**
      * @brief 待机浅睡：只停射频，保留 netif/事件，避免反复 destroy/create
@@ -65,6 +68,7 @@ private:
     esp_event_handler_instance_t instance_got_ip_ = nullptr;
     esp_netif_t* station_netif_ = nullptr;
     bool lp_paused_ = false;
+    std::atomic<bool> manual_{false};
     bool fast_reconnect_on_start_ = false; // LP resume：STA_START 直 connect，跳过扫网
     std::string ssid_;
     std::string password_;

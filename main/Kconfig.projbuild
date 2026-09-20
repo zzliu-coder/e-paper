@@ -333,3 +333,6 @@ endmenu
 
 
 endmenu
+
+# Local candidate, disabled until explicitly enabled.
+rsource "paper_shell/Kconfig.projbuild"

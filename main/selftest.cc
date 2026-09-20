@@ -9,6 +9,10 @@
 #include "sc7a20h.h"
 #include "fontpack_lvgl.h"
 #include "display/lv_adapter_display.h"
+#ifdef CONFIG_PAPER_CORE_APP
+#include "paper_shell/network_service.hpp"
+#include "paper_shell/bluetooth_service.hpp"
+#endif
 #include "esp_lv_adapter.h"
 #include "esp_app_desc.h"
 #include "esp_timer.h"
@@ -221,6 +225,16 @@ bool Tones(int module) {
 }
 
 bool WifiConnect(Job& job) {
+#ifdef CONFIG_PAPER_CORE_APP
+    auto accepted=paper_network::Command("connect",job.text,job.secret);
+    memset(job.secret,0,sizeof job.secret);if(!accepted)return false;
+    for(int i=0;i<250&&!cancel;++i){
+        auto state=paper_network::Snapshot();
+        if(!state.busy){auto*row=cJSON_CreateObject();cJSON_AddStringToObject(row,"result",state.message.c_str());cJSON_AddStringToObject(row,"ip",state.ip.c_str());Append("wifi_connected",5,row);cJSON_Delete(row);return state.connected;}
+        Delay(100);
+    }
+    return false;
+#else
     // The diagnostic mode owns no product Wi-Fi session; do not start cloud services.
     if (test_netif == nullptr) {
         esp_err_t e = esp_netif_init();
@@ -264,6 +278,7 @@ bool WifiConnect(Job& job) {
         if (ok && pass == 0) { esp_wifi_disconnect(); Delay(1200); }
     }
     return ok;
+#endif
 }
 
 void BluetoothRun(Job& job, bool& ok, bool& manual) {
@@ -447,6 +462,9 @@ void Worker(void*) {
 
 bool Enqueue(int m, int action, const char* text = "", const char* secret = "") {
     if (!jobs || m < 0 || m >= kCount || personal_sdk::AudioBusy() || busy.exchange(true)) return false;
+#ifdef CONFIG_PAPER_CORE_APP
+    if (paper_bluetooth::Snapshot().busy) { busy=false; return false; }
+#endif
     cancel = false;
     Job job{}; job.module=m; job.action=action;
     snprintf(job.text, sizeof(job.text), "%s", text); snprintf(job.secret, sizeof(job.secret), "%s", secret);
@@ -523,6 +541,7 @@ void KeyboardDone(lv_event_t* e) {
         lv_obj_add_flag(keyboard,LV_OBJ_FLAG_HIDDEN);
 }
 void Render(int target) {
+    if(auto*d=LVAdapterDisplay::Instance();d&&d->IsPaperPresenting()){requested_page=target;open_requested=true;return;}
     if (busy) return;
     visible=true;
     page=target; status_label=summary_label=choice=password=time_field=keyboard=nullptr;
@@ -594,6 +613,7 @@ void Render(int target) {
     shown_revision=~0u;
 }
 void Tick(lv_timer_t*) {
+    if(auto*d=LVAdapterDisplay::Instance();d&&d->IsPaperPresenting())return;
     if (!busy && open_requested.exchange(false)) Render(requested_page);
     if (!busy && home_edge.exchange(false) && visible) Render(-1);
     if (!visible) return;
@@ -680,6 +700,7 @@ bool Handle(const char* cmd,cJSON* request,cJSON* reply) {
         cJSON_AddStringToObject(reply,"log_file",log_file.c_str()); cJSON_AddBoolToObject(reply,"log_saved",log_ok);
         cJSON_AddNumberToObject(reply,"log_bytes",log_bytes);
     } else if (!strcmp(cmd,"selftest.run")) {
+        if(auto*d=LVAdapterDisplay::Instance();d&&d->IsPaperPresenting()){cJSON_AddStringToObject(reply,"error","display_busy");return true;}
         std::string module=String(request,"module");
         auto found=std::find_if(std::begin(names),std::end(names),[&](const char* n){return module==n;});
         if (found==std::end(names)) cJSON_AddStringToObject(reply,"error","unknown_test");

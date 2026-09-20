@@ -1,5 +1,5 @@
 # Define source files
-set(SOURCES "personal_sdk.cc" "selftest.cc" "inkdesk_app.cc" "ui_demo.cc" "ui_demo_fonts.c"
+set(SOURCES "ui/fontbench/core.cc" "ui/fontbench/gray/driver.c" "personal_sdk.cc" "selftest.cc" "inkdesk_app.cc" "ui_demo.cc" "ui_demo_fonts.c"
             "inkdesk_reader.cc" "inkdesk_epub.cc" "book_transfer.cc" "crossmux_txt/TxtEncoding.cpp"
             "inkdesk_r2/core/desk.cpp" "inkdesk_r2/core/views.cpp"
             "inkdesk_r2/core/ime.cpp" "inkdesk_r2/core/journal.cpp" "audio/audio_codec.cc"
@@ -321,6 +321,8 @@ endif()
 
 file(GLOB FONT_LAB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/font_lab_assets/*.c")
 list(APPEND SOURCES ${FONT_LAB_SOURCES})
+include("${CMAKE_CURRENT_LIST_DIR}/paper_shell/product_sources.cmake")
+
 idf_component_register(SRCS ${SOURCES}
                     EMBED_FILES ${LANG_SOUNDS} ${COMMON_SOUNDS} ${FACTORY_TEST_SOUNDS}
                                 ${ASSISTANT_HINT_EN_A2I1}
@@ -559,3 +561,7 @@ spiffs_create_partition_assets(
     MMAP_SUPPORT_SPNG
     MMAP_SPLIT_HEIGHT 16
 ) 
+
+if(CONFIG_PAPER_CORE_APP)
+    target_link_libraries(${COMPONENT_LIB} PRIVATE idf::paper_core)
+endif()
