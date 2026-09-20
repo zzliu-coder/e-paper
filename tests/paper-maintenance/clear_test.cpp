@@ -26,6 +26,10 @@ int main(int argc,char**argv){
     assert(r.job(j));const auto pageCrc=j.frame.checksum();assert(r.complete(j.revision,{}));
     assert(r.action("settings-category","display"));assert(r.action("continue"));
     assert(r.job(j));assert(j.frame.checksum()==pageCrc);assert(r.complete(j.revision,{}));
+    for(int i=0;i<3;++i){
+        assert(r.action("library"));assert(r.action("open","0"));
+        assert(r.job(j));assert(j.frame.checksum()==pageCrc);assert(r.complete(j.revision,{}));
+    }
     for(auto mode:{"mono","dots","mono"}){
         assert(r.action("text-render",mode));assert(r.job(j));assert(!j.gray);
         assert(r.complete(j.revision,{}));

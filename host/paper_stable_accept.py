@@ -39,7 +39,7 @@ def main():
             assert cache['active_evictions']==old['active_evictions'],'active font evicted'
             assert back['receipt']['dropped']==baseline['dropped']==0,'transport loss'
         act('library');same_page(act('open',a.book)['receipt'])
-        result={'result':'PASS','scope':'same page, settings return, warm next/prev, close/reopen; reboot and physical appearance separate',
+        result={'result':'PASS','scope':'same page, settings return, warm next/prev, library reselection; actual close/reopen, reboot and physical appearance separate',
                 'pairs':a.pairs,'median_seconds':statistics.median(times),'p95_seconds':sorted(times)[min(len(times)-1,int(len(times)*.95))],
                 'max_seconds':max(times),'boot_id':hello['boot_id']}
         save('summary',result);print(json.dumps(result),flush=True)

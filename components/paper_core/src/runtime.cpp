@@ -213,6 +213,10 @@ namespace paper {
                 listPage_=0;
                 return scan();
             }
+            // Library navigation retains the live reader. Re-selecting that
+            // exact book must preserve its frame/locator and avoid reparsing.
+            // SD handoff and resource mutations close the reader separately.
+            if(reader_.opened()&&path==selectedFile_){screen_=Screen::Reading;return {};}
             auto st=reader_.open(path);
             if(st){selectedFile_=path;screen_=Screen::Reading;auto saved=store_.saveRecord("recent-book",path);if(!saved)notice_="本次可阅读；最近阅读记录未保存";}
             return st;
